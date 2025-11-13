@@ -130,25 +130,21 @@ backend-test-polygon:
 backend-test-uniswap:
 	cd backend && uv run pytest packages/blockchain/ethereum/uniswap/__test__/ packages/blockchain/polygon/uniswap/__test__/ -v
 
-# Start Orchestrator Agent
+# Agent server targets (similar to agentflow101)
+.PHONY: agents-start agents-stop agents-status agents-restart agent-orchestrator agent-liquidity
+
+# Individual agent targets (can be run separately)
 agent-orchestrator:
-	@echo "🚀 Starting Orchestrator Agent on port 9000..."
-	@echo "📦 Installing dependencies if needed..."
-	@cd backend && (uv sync 2>&1 || uv pip install -e '.[dev]' 2>&1 || pip install -e '.[dev]' 2>&1) | grep -v '^$$' | tail -5 || true
+	@echo "🚀 Starting Orchestrator Agent..."
+	@echo "   Orchestrator Agent: http://0.0.0.0:9000"
 	cd backend && uv run -m agents.orchestrator.orchestrator
 
-# Start Multi-Chain Liquidity Agent
 agent-liquidity:
-	@echo "💧 Starting Multi-Chain Liquidity Agent on port 9998..."
-	@echo "📦 Installing dependencies if needed..."
-	@cd backend && (uv sync 2>&1 || uv pip install -e '.[dev]' 2>&1 || pip install -e '.[dev]' 2>&1) | grep -v '^$$' | tail -5 || true
+	@echo "💧 Starting Multi-Chain Liquidity Agent..."
+	@echo "   Multi-Chain Liquidity Agent: http://0.0.0.0:9998"
 	cd backend && uv run -m agents.multichain_liquidity
 
-# Create PID directory for agent process tracking
-.PHONY: agents-start agents-stop agents-status agents-restart
-AGENT_PID_DIR := backend/.agent_pids
-
-# Start all agents in background
+# Start all agents in parallel (similar to agentflow101's dev-all-agents)
 agents-start:
 	@echo "🚀 Starting all agents..."
 	@echo "   Orchestrator Agent: http://0.0.0.0:9000"
@@ -161,50 +157,18 @@ agents-start:
 	@echo "📦 Installing dependencies..."
 	@cd backend && (uv sync 2>&1 || uv pip install -e '.[dev]' 2>&1 || pip install -e '.[dev]' 2>&1) | grep -v '^$$' | head -20 || true
 	@echo ""
-	@mkdir -p $(AGENT_PID_DIR)
-	@echo "Starting agents in background..."
-	@cd backend && sh -c "nohup uv run -m agents.orchestrator.orchestrator > .agent_pids/orchestrator.log 2>&1 & echo \$$! > .agent_pids/orchestrator.pid"
-	@cd backend && sh -c "nohup uv run -m agents.multichain_liquidity > .agent_pids/liquidity.log 2>&1 & echo \$$! > .agent_pids/liquidity.pid"
-	@sleep 3
-	@echo "✅ All agents started!"
+	@echo "Starting agents in parallel (logs will appear in terminal)..."
+	@echo "Press Ctrl+C to stop all agents"
 	@echo ""
-	@echo "Agent PIDs:"
-	@if [ -f "$(AGENT_PID_DIR)/orchestrator.pid" ]; then \
-		echo "  - Orchestrator: $$(cat $(AGENT_PID_DIR)/orchestrator.pid)"; \
-	else \
-		echo "  - Orchestrator: not found"; \
-	fi
-	@if [ -f "$(AGENT_PID_DIR)/liquidity.pid" ]; then \
-		echo "  - Liquidity: $$(cat $(AGENT_PID_DIR)/liquidity.pid)"; \
-	else \
-		echo "  - Liquidity: not found"; \
-	fi
-	@echo ""
-	@echo "To stop agents, run: make agents-stop"
-	@echo "To check status, run: make agents-status"
+	@make -j2 agent-orchestrator agent-liquidity
 
-# Stop all running agents
+# Stop all running agents (without using PID files)
 agents-stop:
 	@echo "🛑 Stopping all agents..."
-	@if [ -d "$(AGENT_PID_DIR)" ]; then \
-		if [ -f "$(AGENT_PID_DIR)/orchestrator.pid" ]; then \
-			PID=$$(cat $(AGENT_PID_DIR)/orchestrator.pid 2>/dev/null); \
-			if [ -n "$$PID" ] && kill -0 $$PID 2>/dev/null; then \
-				kill $$PID 2>/dev/null && echo "  ✓ Stopped Orchestrator (PID: $$PID)" || true; \
-			fi; \
-			rm -f $(AGENT_PID_DIR)/orchestrator.pid; \
-		fi; \
-		if [ -f "$(AGENT_PID_DIR)/liquidity.pid" ]; then \
-			PID=$$(cat $(AGENT_PID_DIR)/liquidity.pid 2>/dev/null); \
-			if [ -n "$$PID" ] && kill -0 $$PID 2>/dev/null; then \
-				kill $$PID 2>/dev/null && echo "  ✓ Stopped Liquidity Agent (PID: $$PID)" || true; \
-			fi; \
-			rm -f $(AGENT_PID_DIR)/liquidity.pid; \
-		fi; \
-	fi
-	@pkill -f "agents.orchestrator.orchestrator" 2>/dev/null || true
-	@pkill -f "agents.multichain_liquidity" 2>/dev/null || true
+	@pkill -f "agents.orchestrator.orchestrator" 2>/dev/null && echo "  ✓ Stopped Orchestrator Agent" || echo "  ⚠ Orchestrator Agent not running"
+	@pkill -f "agents.multichain_liquidity" 2>/dev/null && echo "  ✓ Stopped Liquidity Agent" || echo "  ⚠ Liquidity Agent not running"
 	@rm -rf $(AGENT_PID_DIR) 2>/dev/null || true
+	@sleep 1
 	@echo "✅ All agents stopped"
 
 # Check status of all agents

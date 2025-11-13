@@ -6,6 +6,9 @@ Starts the Multi-Chain Liquidity Agent as an A2A Protocol server.
 
 import uvicorn
 import os
+import warnings
+# Suppress deprecation warning for agent.json endpoint (will be fixed in future a2a-server update)
+warnings.filterwarnings("ignore", message=".*Deprecated agent card endpoint.*", category=DeprecationWarning)
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
