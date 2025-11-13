@@ -1,0 +1,1 @@
+export { MarketInsightsCard } from "./MarketInsightsCard";

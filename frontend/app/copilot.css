@@ -1,0 +1,21 @@
+/* CopilotKit Component Overrides for split chat UI */
+
+.copilotKitInput {
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+  border: 1px solid var(--copilot-kit-separator-color) !important;
+}
+
+.copilotKitChat {
+  background-color: transparent !important;
+}
+
+.copilotKitMessages {
+  background-color: transparent !important;
+}
+
+.copilotKitInputContainer {
+  background-color: transparent !important;
+}

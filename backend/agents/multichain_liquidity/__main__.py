@@ -19,7 +19,7 @@ port = int(os.getenv("LIQUIDITY_PORT", 9998))
 
 skill = AgentSkill(
     id="multichain_liquidity_agent",
-    name="Multi-Chain Liquidity Agent",
+    name="MultiChainLiquidityAgent",
     description=(
         "Retrieves liquidity pool information from multiple blockchain chains "
         "(Ethereum, Polygon, Hedera) using parallel execution with ADK. "
@@ -39,7 +39,7 @@ skill = AgentSkill(
 
 cardUrl = os.getenv("RENDER_EXTERNAL_URL", f"http://localhost:{port}")
 public_agent_card = AgentCard(
-    name="Multi-Chain Liquidity Agent",
+    name="MultiChainLiquidityAgent",
     description=(
         "ADK-powered agent that retrieves liquidity pool information from multiple blockchain chains "
         "using parallel execution. Queries Uniswap V3 pools on Ethereum and Polygon mainnets, "
