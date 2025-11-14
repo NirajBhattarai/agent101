@@ -399,6 +399,21 @@ def execute_swap(
             "balance_sufficient": balance_sufficient,
             "required_amount": f"{amount_float:.2f}",
         }
+        
+        # Return error response if balance is insufficient
+        if not balance_sufficient:
+            print(f"❌ Insufficient balance: {actual_balance} {token_in_symbol} < {amount_float} {token_in_symbol}")
+            return {
+                "chain": chain,
+                "token_in_symbol": token_in_symbol,
+                "token_out_symbol": token_out_symbol,
+                "amount_in": amount_in,
+                "account_address": account_address,
+                "balance_check": balance_check,
+                "error": f"Insufficient balance. You have {actual_balance:.6f} {token_in_symbol}, but need {amount_float:.6f} {token_in_symbol}",
+                "transaction": None,
+                "swap_config": None,
+            }
 
     # Step 3: Use swap config values (pool info should come from Liquidity Agent, not internal lookup)
     print("🔄 Step 2: Preparing swap transaction...")
@@ -464,7 +479,7 @@ def execute_swap(
 
 def build_swap_response(swap_data: dict) -> dict:
     """Build swap response from swap data."""
-    return {
+    response = {
         "type": RESPONSE_TYPE,
         "chain": swap_data["chain"],
         "token_in_symbol": swap_data["token_in_symbol"],
@@ -478,3 +493,9 @@ def build_swap_response(swap_data: dict) -> dict:
         "confirmation_threshold": DEFAULT_CONFIRMATION_THRESHOLD,
         "amount_exceeds_threshold": False,
     }
+    
+    # Add error field if present
+    if "error" in swap_data:
+        response["error"] = swap_data["error"]
+    
+    return response
