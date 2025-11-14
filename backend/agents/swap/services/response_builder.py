@@ -86,11 +86,12 @@ def _fetch_balance(chain: str, account: str, token_address: str, token_symbol: s
         # For native tokens (MATIC, ETH, HBAR), don't use token_address - get native balance
         token_symbol_upper = token_symbol.upper()
         is_native_token = token_symbol_upper in ["HBAR", "MATIC", "ETH"]
-        
+
         if chain == "hedera":
             if is_native_token and token_symbol_upper == "HBAR":
                 # Get native HBAR balance directly
                 from packages.blockchain.hedera.balance import get_native_hbar_balance
+
                 result = get_native_hbar_balance(account, api_base=None)
                 if result.get("balance"):
                     return float(result.get("balance", "0"))
@@ -99,6 +100,7 @@ def _fetch_balance(chain: str, account: str, token_address: str, token_symbol: s
             if is_native_token and token_symbol_upper == "MATIC":
                 # Get native MATIC balance directly
                 from packages.blockchain.polygon.balance import get_native_matic_balance
+
                 result = get_native_matic_balance(account)
                 if result.get("balance"):
                     return float(result.get("balance", "0"))
@@ -107,6 +109,7 @@ def _fetch_balance(chain: str, account: str, token_address: str, token_symbol: s
             if is_native_token and token_symbol_upper == "ETH":
                 # Get native ETH balance directly
                 from packages.blockchain.ethereum.balance import get_native_eth_balance
+
                 result = get_native_eth_balance(account)
                 if result.get("balance"):
                     return float(result.get("balance", "0"))
@@ -356,7 +359,59 @@ def execute_swap(
     """
     print(f"💱 Starting swap execution for {token_in_symbol} -> {token_out_symbol} on {chain}")
 
+    # Step 0: Resolve token addresses (check constants first, then use Token Research Agent if needed)
+    from .token_resolver import resolve_token_addresses_for_swap
+
+    token_resolution = resolve_token_addresses_for_swap(token_in_symbol, token_out_symbol, chain)
+
+    # Check if tokens were resolved - if not, return error
+    if not token_resolution.get("token_in_resolved"):
+        error_msg = token_resolution.get("error", f"Token {token_in_symbol} not found for {chain}")
+        print(f"❌ {error_msg}")
+        return {
+            "chain": chain,
+            "token_in_symbol": token_in_symbol,
+            "token_out_symbol": token_out_symbol,
+            "amount_in": amount_in,
+            "account_address": account_address,
+            "error": f"Could not find token address for {token_in_symbol} on {chain}. Please verify the token symbol is correct.",
+            "transaction": None,
+            "swap_config": None,
+        }
+
+    if not token_resolution.get("token_out_resolved"):
+        error_msg = token_resolution.get("error", f"Token {token_out_symbol} not found for {chain}")
+        print(f"❌ {error_msg}")
+        return {
+            "chain": chain,
+            "token_in_symbol": token_in_symbol,
+            "token_out_symbol": token_out_symbol,
+            "amount_in": amount_in,
+            "account_address": account_address,
+            "error": f"Could not find token address for {token_out_symbol} on {chain}. Please verify the token symbol is correct.",
+            "transaction": None,
+            "swap_config": None,
+        }
+
+    # If tokens were resolved via Token Research, update swap config to use discovered addresses
+    if (
+        token_resolution.get("token_in_info")
+        and token_resolution["token_in_info"].get("source") == "token_research"
+    ):
+        print(
+            f"✅ Resolved {token_in_symbol} via Token Research: {token_resolution['token_in_info'].get('address_evm') or token_resolution['token_in_info'].get('address')}"
+        )
+
+    if (
+        token_resolution.get("token_out_info")
+        and token_resolution["token_out_info"].get("source") == "token_research"
+    ):
+        print(
+            f"✅ Resolved {token_out_symbol} via Token Research: {token_resolution['token_out_info'].get('address_evm') or token_resolution['token_out_info'].get('address')}"
+        )
+
     # Step 1: Get swap configuration (token addresses, paths, etc.)
+    # This will use constants if available, or we'll need to patch addresses from token_resolution
     swap_config = _get_swap_config(
         chain,
         token_in_symbol,
@@ -365,6 +420,113 @@ def execute_swap(
         account_address,
         slippage_tolerance,
     )
+
+    # If tokens were resolved via Token Research, update swap_config with discovered addresses
+    needs_path_rebuild = False
+    if (
+        token_resolution.get("token_in_info")
+        and token_resolution["token_in_info"].get("source") == "token_research"
+    ):
+        token_in_info = token_resolution["token_in_info"]
+        if chain == "hedera":
+            swap_config["token_in_address"] = token_in_info.get(
+                "address_hedera"
+            ) or token_in_info.get("address_evm")
+            swap_config["token_in_address_evm"] = token_in_info.get("address_evm")
+        else:
+            swap_config["token_in_address"] = token_in_info.get("address")
+            swap_config["token_in_address_evm"] = token_in_info.get("address")
+        swap_config["token_in_decimals"] = token_in_info.get("decimals", 18)
+        print(f"📝 Updated swap_config with discovered {token_in_symbol} address")
+        needs_path_rebuild = True
+
+    if (
+        token_resolution.get("token_out_info")
+        and token_resolution["token_out_info"].get("source") == "token_research"
+    ):
+        token_out_info = token_resolution["token_out_info"]
+        if chain == "hedera":
+            swap_config["token_out_address"] = token_out_info.get(
+                "address_hedera"
+            ) or token_out_info.get("address_evm")
+            swap_config["token_out_address_evm"] = token_out_info.get("address_evm")
+        else:
+            swap_config["token_out_address"] = token_out_info.get("address")
+            swap_config["token_out_address_evm"] = token_out_info.get("address")
+        swap_config["token_out_decimals"] = token_out_info.get("decimals", 18)
+        print(f"📝 Updated swap_config with discovered {token_out_symbol} address")
+        needs_path_rebuild = True
+
+    # If we discovered tokens, rebuild swap path with discovered addresses
+    if needs_path_rebuild:
+        print("🔄 Rebuilding swap path with discovered token addresses...")
+        # Rebuild swap path using discovered addresses
+        if chain == "hedera":
+            from packages.blockchain.hedera.constants import HEDERA_TOKENS
+
+            swap_path_evm = []
+            token_in_evm = swap_config.get("token_in_address_evm")
+            token_out_evm = swap_config.get("token_out_address_evm")
+
+            if token_in_symbol.upper() == "HBAR":
+                # Native HBAR swap: HBAR -> WHBAR -> Token
+                whbar_info = HEDERA_TOKENS.get("WHBAR", {})
+                whbar_address_evm = whbar_info.get("address")
+                if whbar_address_evm:
+                    swap_path_evm.append(whbar_address_evm)
+                if token_out_evm:
+                    swap_path_evm.append(token_out_evm)
+            elif token_out_symbol.upper() == "HBAR":
+                # Token -> WHBAR -> HBAR
+                if token_in_evm:
+                    swap_path_evm.append(token_in_evm)
+                whbar_info = HEDERA_TOKENS.get("WHBAR", {})
+                whbar_address_evm = whbar_info.get("address")
+                if whbar_address_evm:
+                    swap_path_evm.append(whbar_address_evm)
+            else:
+                # Token -> Token
+                if token_in_evm:
+                    swap_path_evm.append(token_in_evm)
+                if token_out_evm:
+                    swap_path_evm.append(token_out_evm)
+
+            swap_config["swap_path"] = swap_path_evm
+            swap_config["swap_path_hedera"] = [
+                swap_config.get("token_in_address"),
+                swap_config.get("token_out_address"),
+            ]
+        elif chain == "polygon":
+            swap_path = []
+            token_in_addr = swap_config.get("token_in_address_evm") or swap_config.get(
+                "token_in_address"
+            )
+            token_out_addr = swap_config.get("token_out_address_evm") or swap_config.get(
+                "token_out_address"
+            )
+
+            if token_in_addr:
+                swap_path.append(token_in_addr)
+            if token_out_addr:
+                swap_path.append(token_out_addr)
+
+            swap_config["swap_path"] = swap_path
+        elif chain == "ethereum":
+            swap_path = []
+            token_in_addr = swap_config.get("token_in_address_evm") or swap_config.get(
+                "token_in_address"
+            )
+            token_out_addr = swap_config.get("token_out_address_evm") or swap_config.get(
+                "token_out_address"
+            )
+
+            if token_in_addr:
+                swap_path.append(token_in_addr)
+            if token_out_addr:
+                swap_path.append(token_out_addr)
+
+            swap_config["swap_path"] = swap_path
+
     addresses = _extract_token_addresses(chain, swap_config)
 
     try:
@@ -399,10 +561,12 @@ def execute_swap(
             "balance_sufficient": balance_sufficient,
             "required_amount": f"{amount_float:.2f}",
         }
-        
+
         # Return error response if balance is insufficient
         if not balance_sufficient:
-            print(f"❌ Insufficient balance: {actual_balance} {token_in_symbol} < {amount_float} {token_in_symbol}")
+            print(
+                f"❌ Insufficient balance: {actual_balance} {token_in_symbol} < {amount_float} {token_in_symbol}"
+            )
             return {
                 "chain": chain,
                 "token_in_symbol": token_in_symbol,
@@ -438,6 +602,32 @@ def execute_swap(
     transaction_token_out = (
         addresses["token_out_address_evm"] if chain == "hedera" else addresses["token_out_address"]
     )
+
+    # Add discovered token info to transaction if tokens were resolved via Token Research
+    # Also include token info for all tokens (constants, cache, or token_research) with explorer URLs
+    discovered_tokens = {}
+    token_in_info = token_resolution.get("token_in_info")
+    token_out_info = token_resolution.get("token_out_info")
+
+    # Always include token info for all tokens (constants, cache, or token_research) with explorer URLs
+    # This allows users to verify token addresses via explorer links
+    if token_in_info:
+        discovered_tokens["token_in"] = {
+            "symbol": token_in_symbol,
+            "address": transaction_token_in,
+            "source": token_in_info.get("source", "constants"),
+            "name": token_in_info.get("name", ""),
+            "explorer_url": token_in_info.get("explorer_url"),
+        }
+
+    if token_out_info:
+        discovered_tokens["token_out"] = {
+            "symbol": token_out_symbol,
+            "address": transaction_token_out,
+            "source": token_out_info.get("source", "constants"),
+            "name": token_out_info.get("name", ""),
+            "explorer_url": token_out_info.get("explorer_url"),
+        }
     transaction = {
         "chain": chain,
         "token_in_symbol": token_in_symbol,
@@ -462,6 +652,7 @@ def execute_swap(
         "price_impact": "0.1%",
         "swap_path": swap_config.get("swap_path", []),
         "rpc_url": swap_config.get("rpc_url", ""),
+        "discovered_tokens": discovered_tokens if discovered_tokens else None,
     }
 
     print("✅ Swap execution complete")
@@ -493,9 +684,9 @@ def build_swap_response(swap_data: dict) -> dict:
         "confirmation_threshold": DEFAULT_CONFIRMATION_THRESHOLD,
         "amount_exceeds_threshold": False,
     }
-    
+
     # Add error field if present
     if "error" in swap_data:
         response["error"] = swap_data["error"]
-    
+
     return response

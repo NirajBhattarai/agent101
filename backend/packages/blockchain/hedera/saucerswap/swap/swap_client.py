@@ -129,10 +129,18 @@ def get_swap_hedera(
     token_in_address_evm = get_token_address_hedera(token_in_symbol, use_evm=True)
     token_out_address_evm = get_token_address_hedera(token_out_symbol, use_evm=True)
 
+    # If tokens not found in constants, they should be resolved by Token Research Agent before calling this
+    # For now, we'll allow None addresses and let the caller handle it
     if not token_in_address_hedera or not token_out_address_hedera:
-        raise ValueError(
-            f"Token not found: {token_in_symbol} or {token_out_symbol} not in HEDERA_TOKENS"
-        )
+        # Don't raise error - let Token Research Agent resolve it upstream
+        print(f"⚠️  Token not found in constants: {token_in_symbol} or {token_out_symbol}")
+        # Return None addresses - will be filled by token resolver
+        if not token_in_address_hedera:
+            token_in_address_hedera = None
+            token_in_address_evm = None
+        if not token_out_address_hedera:
+            token_out_address_hedera = None
+            token_out_address_evm = None
 
     # Get DEX configuration (SaucerSwap)
     dex_config = SAUCERSWAP_DEX_CONFIG
@@ -143,22 +151,48 @@ def get_swap_hedera(
     # For Hedera, common path is WHBAR -> Token (for native HBAR swaps)
     swap_path_evm = []
 
+    # Ensure we have addresses before building path
+    if not token_in_address_evm or not token_out_address_evm:
+        # Addresses will be filled by token resolver upstream
+        # Return minimal config for now
+        return {
+            "chain": "hedera",
+            "token_in_symbol": token_in_symbol.upper(),
+            "token_in_address": token_in_address_hedera,
+            "token_in_address_evm": token_in_address_evm,
+            "token_out_symbol": token_out_symbol.upper(),
+            "token_out_address": token_out_address_hedera,
+            "token_out_address_evm": token_out_address_evm,
+            "amount_in": amount_in,
+            "amount_out": "0",
+            "amount_out_min": "0",
+            "swap_path": [],
+            "swap_path_hedera": [],
+            "router_address": router_address,
+            "dex_name": dex_name_actual,
+            "slippage_tolerance": slippage_tolerance,
+        }
+
     if token_in_symbol.upper() == "HBAR":
         # Native HBAR swap: HBAR -> WHBAR -> Token
         whbar_address_evm = get_token_address_hedera("WHBAR", use_evm=True)
         if whbar_address_evm:
             swap_path_evm.append(whbar_address_evm)
-        swap_path_evm.append(token_out_address_evm)
+        if token_out_address_evm:
+            swap_path_evm.append(token_out_address_evm)
     elif token_out_symbol.upper() == "HBAR":
         # Token -> WHBAR -> HBAR
-        swap_path_evm.append(token_in_address_evm)
+        if token_in_address_evm:
+            swap_path_evm.append(token_in_address_evm)
         whbar_address_evm = get_token_address_hedera("WHBAR", use_evm=True)
         if whbar_address_evm:
             swap_path_evm.append(whbar_address_evm)
     else:
         # Token -> Token (may need intermediate path)
-        swap_path_evm.append(token_in_address_evm)
-        swap_path_evm.append(token_out_address_evm)
+        if token_in_address_evm:
+            swap_path_evm.append(token_in_address_evm)
+        if token_out_address_evm:
+            swap_path_evm.append(token_out_address_evm)
 
     # Calculate expected output using router.getAmountsOut
     try:
@@ -183,15 +217,21 @@ def get_swap_hedera(
         amount_out_wei = amounts[-1]
         amount_out_float = amount_out_wei / (10**token_out_decimals)
         print(f"✅ Calculated amount_out from router: {amount_out_float} {token_out_symbol}")
-        print(f"💰 Swap Output: {amount_in} {token_in_symbol.upper()} → {amount_out_float:.6f} {token_out_symbol.upper()}")
+        print(
+            f"💰 Swap Output: {amount_in} {token_in_symbol.upper()} → {amount_out_float:.6f} {token_out_symbol.upper()}"
+        )
     else:
         # Fallback to simple estimation if router call fails
         print("⚠️ Router getAmountsOut failed, using estimation")
         amount_out_float = amount_float * 0.995
-        print(f"💰 Swap Output (estimated): {amount_in} {token_in_symbol.upper()} → {amount_out_float:.6f} {token_out_symbol.upper()}")
+        print(
+            f"💰 Swap Output (estimated): {amount_in} {token_in_symbol.upper()} → {amount_out_float:.6f} {token_out_symbol.upper()}"
+        )
 
     amount_out_min_float = amount_out_float * (1 - slippage_tolerance / 100)
-    print(f"📊 Minimum output (with {slippage_tolerance}% slippage): {amount_out_min_float:.6f} {token_out_symbol.upper()}")
+    print(
+        f"📊 Minimum output (with {slippage_tolerance}% slippage): {amount_out_min_float:.6f} {token_out_symbol.upper()}"
+    )
 
     return {
         "chain": "hedera",
@@ -206,8 +246,6 @@ def get_swap_hedera(
         "amount_out_min": f"{amount_out_min_float:.6f}",
         "swap_path": swap_path_evm,  # EVM addresses for contract calls
         "swap_path_hedera": [
-
-            
             token_in_address_hedera,
             token_out_address_hedera,
         ],  # Hedera format for reference

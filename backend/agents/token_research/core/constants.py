@@ -1,0 +1,11 @@
+"""Constants for Token Research Agent."""
+
+RESPONSE_TYPE = "token_research"
+ERROR_TOKEN_NOT_FOUND = "Token not found"
+ERROR_INVALID_QUERY = "Invalid query"
+ERROR_SEARCH_FAILED = "Token search failed"
+ERROR_EXECUTION_ERROR = "Execution error"
+ERROR_VALIDATION_FAILED = "Validation failed"
+ERROR_INVALID_JSON = "Invalid JSON response"
+DEFAULT_SESSION_ID = "default_session"
+ERROR_CANCEL_NOT_SUPPORTED = "cancel not supported"

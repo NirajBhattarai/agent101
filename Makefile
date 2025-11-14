@@ -2,7 +2,7 @@
 	backend-dev backend-install backend-format backend-lint backend-test \
 	backend-test-saucerswap backend-test-saucerswap-coverage backend-test-all backend-test-watch \
 	backend-test-ethereum backend-test-polygon backend-test-uniswap \
-	agent-orchestrator agent-liquidity agent-balance agent-swap agent-sentiment agent-trading agents-start agents-stop agents-status agents-restart help
+	agent-orchestrator agent-liquidity agent-balance agent-swap agent-sentiment agent-trading agent-token-research agents-start agents-stop agents-status agents-restart help
 
 # Default target
 help:
@@ -41,7 +41,8 @@ help:
 	@echo "  make agent-swap                   - Start Swap Agent (port 9999)"
 	@echo "  make agent-sentiment              - Start Sentiment Agent (port 10000)"
 	@echo "  make agent-trading                - Start Trading Agent (port 10001)"
-	@echo "  make agents-start                - Start all agents (orchestrator + liquidity + balance + swap + sentiment + trading)"
+	@echo "  make agent-token-research         - Start Token Research Agent (port 10002)"
+	@echo "  make agents-start                - Start all agents (orchestrator + liquidity + balance + swap + sentiment + trading + token-research)"
 	@echo "  make agents-stop                 - Stop all running agents"
 	@echo "  make agents-status               - Check status of all agents"
 	@echo "  make agents-restart              - Restart all agents"
@@ -141,7 +142,7 @@ backend-test-uniswap:
 	cd backend && uv run pytest packages/blockchain/ethereum/uniswap/__test__/ packages/blockchain/polygon/uniswap/__test__/ -v
 
 # Agent server targets (similar to agentflow101)
-.PHONY: agents-start agents-stop agents-status agents-restart agent-orchestrator agent-liquidity agent-balance agent-swap agent-sentiment agent-trading
+.PHONY: agents-start agents-stop agents-status agents-restart agent-orchestrator agent-liquidity agent-balance agent-swap agent-sentiment agent-trading agent-token-research
 
 # Individual agent targets (can be run separately)
 agent-orchestrator:
@@ -174,6 +175,11 @@ agent-trading:
 	@echo "   Trading Agent: http://0.0.0.0:10001"
 	cd backend && uv run -m agents.trading
 
+agent-token-research:
+	@echo "🔍 Starting Token Research Agent..."
+	@echo "   Token Research Agent: http://0.0.0.0:10002"
+	cd backend && uv run -m agents.token_research
+
 # Start all agents in parallel (similar to agentflow101's dev-all-agents)
 # Swap workflow: Orchestrator coordinates Balance -> Liquidity -> Swap agents
 agents-start:
@@ -184,6 +190,7 @@ agents-start:
 	@echo "   Swap Agent: http://0.0.0.0:9999"
 	@echo "   Sentiment Agent: http://0.0.0.0:10000"
 	@echo "   Trading Agent: http://0.0.0.0:10001"
+	@echo "   Token Research Agent: http://0.0.0.0:10002"
 	@echo ""
 	@echo "📋 Swap Workflow:"
 	@echo "   1. Orchestrator -> Balance Agent (check balance)"
@@ -200,7 +207,7 @@ agents-start:
 	@echo "Starting agents in parallel (logs will appear in terminal)..."
 	@echo "Press Ctrl+C to stop all agents"
 	@echo ""
-	@make -j6 agent-orchestrator agent-liquidity agent-balance agent-swap agent-sentiment agent-trading
+	@make -j7 agent-orchestrator agent-liquidity agent-balance agent-swap agent-sentiment agent-trading agent-token-research
 
 # Stop all running agents (without using PID files)
 agents-stop:
@@ -211,6 +218,7 @@ agents-stop:
 	@pkill -f "agents.swap" 2>/dev/null && echo "  ✓ Stopped Swap Agent" || echo "  ⚠ Swap Agent not running"
 	@pkill -f "agents.sentiment" 2>/dev/null && echo "  ✓ Stopped Sentiment Agent" || echo "  ⚠ Sentiment Agent not running"
 	@pkill -f "agents.trading" 2>/dev/null && echo "  ✓ Stopped Trading Agent" || echo "  ⚠ Trading Agent not running"
+	@pkill -f "agents.token_research" 2>/dev/null && echo "  ✓ Stopped Token Research Agent" || echo "  ⚠ Token Research Agent not running"
 	@rm -rf $(AGENT_PID_DIR) 2>/dev/null || true
 	@sleep 1
 	@echo "✅ All agents stopped"
@@ -248,6 +256,11 @@ agents-status:
 		echo "  ✅ Trading Agent: Running (Port: 10001)"; \
 	else \
 		echo "  ❌ Trading Agent: Not running"; \
+	fi
+	@if pgrep -f "agents.token_research" > /dev/null; then \
+		echo "  ✅ Token Research Agent: Running (Port: 10002)"; \
+	else \
+		echo "  ❌ Token Research Agent: Not running"; \
 	fi
 	@echo ""
 

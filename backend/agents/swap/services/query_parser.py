@@ -93,6 +93,7 @@ def _get_all_token_symbols(chain: str) -> list:
 def _match_token_patterns(query_lower: str, all_tokens: list) -> Optional[Tuple[str, str]]:
     """Match token swap patterns. Returns (token_in, token_out) or None."""
     patterns = [
+        r"help\s+to\s+swap\s+(\d+\.?\d*)\s+([A-Za-z]+)\s+to\s+([A-Za-z]+)",  # "help to swap 0.2 usdc to aster"
         r"swap\s+(\d+\.?\d*)\s+([A-Za-z]+)\s+to\s+([A-Za-z]+)",
         r"swap\s+([A-Za-z]+)\s+to\s+([A-Za-z]+)",
         r"swap\s+([A-Za-z]+)\s+for\s+([A-Za-z]+)",
@@ -107,26 +108,14 @@ def _match_token_patterns(query_lower: str, all_tokens: list) -> Optional[Tuple[
         match = re.search(pattern, query_lower)
         if match:
             groups = match.groups()
-            if len(groups) == 3:
-                token1, token2 = groups[1].upper(), groups[2].upper()
-            else:
-                token1, token2 = groups[0].upper(), groups[1].upper()
-            
-            # Normalize MATIC/WMATIC - treat them as the same
-            if token1 == "MATIC":
-                token1 = "WMATIC" if "WMATIC" in all_tokens else token1
-            if token2 == "MATIC":
-                token2 = "WMATIC" if "WMATIC" in all_tokens else token2
-            
-            # Check if tokens are valid (allow MATIC even if only WMATIC in list)
-            token1_valid = token1 in all_tokens or (token1 == "MATIC" and "WMATIC" in all_tokens)
-            token2_valid = token2 in all_tokens or (token2 == "MATIC" and "WMATIC" in all_tokens)
-            
-            if token1_valid and token2_valid:
-                # Return original case (MATIC) if user said MATIC, even if we normalized internally
-                original_token1 = "MATIC" if groups[1 if len(groups) == 3 else 0].upper() == "MATIC" else token1
-                original_token2 = "MATIC" if groups[2 if len(groups) == 3 else 1].upper() == "MATIC" else token2
-                return original_token1, original_token2
+            # Normalize MATIC/WMATIC - treat them as the same (only for Polygon)
+            # But don't restrict to all_tokens - allow any tokens (Token Research Agent will resolve them)
+            original_token1 = groups[1 if len(groups) == 3 else 0].upper()
+            original_token2 = groups[2 if len(groups) == 3 else 1].upper()
+
+            # Always return matched tokens - token resolver will handle finding addresses
+            # even if they're not in constants (will use Token Research Agent)
+            return original_token1, original_token2
     return None
 
 
@@ -172,12 +161,10 @@ def _find_tokens_by_position(
     if len(found_tokens) >= 2:
         return found_tokens[0], found_tokens[1]
     if len(found_tokens) == 1:
-        # For Polygon, if only one token found and it's USDC, default to MATIC (native token)
-        if chain == CHAIN_POLYGON and found_tokens[0] == "USDC":
-            return found_tokens[0], "MATIC"
-        # For other chains, use chain-specific defaults
-        default_out = "USDC" if chain == CHAIN_HEDERA else ("MATIC" if chain == CHAIN_POLYGON else "USDT")
-        return found_tokens[0], default_out
+        # Don't use hardcoded defaults - return None for token_out if only one token found
+        # This will allow the pattern matching in extract_token_symbols to catch tokens not in all_tokens
+        # The pattern matching will extract tokens like "ASTER" even if not in the token list
+        return found_tokens[0], None
     return None, None
 
 
@@ -190,31 +177,68 @@ def extract_token_symbols(
     matched = _match_token_patterns(query_lower, all_tokens)
     if matched:
         token_in, token_out = matched
-        if chain_specified:
-            from packages.blockchain.ethereum.constants import ETHEREUM_TOKENS
-            from packages.blockchain.hedera.constants import HEDERA_TOKENS
-            from packages.blockchain.polygon.constants import POLYGON_TOKENS
-
-            chain_tokens = {}
-            if chain == CHAIN_HEDERA:
-                chain_tokens = HEDERA_TOKENS
-            elif chain == CHAIN_POLYGON:
-                chain_tokens = POLYGON_TOKENS
-            elif chain == CHAIN_ETHEREUM:
-                chain_tokens = ETHEREUM_TOKENS
-
-            # For Polygon, MATIC and WMATIC are the same (MATIC is native, WMATIC is wrapped)
-            # Allow MATIC even if only WMATIC is in constants
-            if chain == CHAIN_POLYGON:
-                token_in_normalized = "WMATIC" if token_in == "MATIC" else token_in
-                token_out_normalized = "WMATIC" if token_out == "MATIC" else token_out
-                if (token_in in chain_tokens or token_in_normalized in chain_tokens) and (
-                    token_out in chain_tokens or token_out_normalized in chain_tokens
-                ):
-                    return token_in, token_out
-            elif token_in in chain_tokens and token_out in chain_tokens:
-                return token_in, token_out
+        # Always return matched tokens - token resolver will handle finding addresses
+        # even if they're not in constants (will use Token Research Agent)
         return token_in, token_out
+
+    # Try to find tokens by position in query (for tokens not in common list)
+    # Extract tokens from patterns like "X to Y" or "X for Y" - case insensitive
+    # Only exclude common English words and chain names, not token symbols
+    excluded_words = {
+        "POLYGON",
+        "ETHEREUM",
+        "HEDERA",
+        "TO",
+        "FOR",
+        "ON",
+        "IN",
+        "AT",
+        "IS",
+        "IT",
+        "THE",
+        "AND",
+        "OR",
+        "SWAP",
+        "HELP",
+        "WITH",
+    }
+
+    # Try to match swap patterns like "X to Y" or "X for Y" - case insensitive
+    # Order matters: most specific patterns first
+    swap_patterns = [
+        r"help\s+to\s+swap\s+(\d+\.?\d*)\s+([A-Za-z]{2,10})\s+to\s+([A-Za-z]{2,10})",  # "help to swap 0.2 usdc to aster"
+        r"swap\s+(\d+\.?\d*)\s+([A-Za-z]{2,10})\s+to\s+([A-Za-z]{2,10})",  # "swap 0.2 usdc to aster"
+        r"swap\s+([A-Za-z]{2,10})\s+to\s+([A-Za-z]{2,10})",  # "swap usdc to aster"
+        r"(\d+\.?\d*)\s+([A-Za-z]{2,10})\s+to\s+([A-Za-z]{2,10})",  # "0.2 usdc to aster"
+        r"([A-Za-z]{2,10})\s+to\s+([A-Za-z]{2,10})",  # "usdc to aster" (fallback, may match unwanted things)
+        r"([A-Za-z]{2,10})\s+for\s+([A-Za-z]{2,10})",  # "usdc for aster"
+    ]
+
+    for pattern in swap_patterns:
+        match = re.search(pattern, query, re.IGNORECASE)
+        if match:
+            groups = match.groups()
+            # Extract tokens - handle patterns with amount or without
+            if len(groups) == 3:
+                # Pattern has amount: groups[0] = amount, groups[1] = token1, groups[2] = token2
+                token1 = groups[1].upper() if groups[1] else None
+                token2 = groups[2].upper() if groups[2] else None
+            elif len(groups) == 2:
+                # Pattern without amount: groups[0] = token1, groups[1] = token2
+                token1 = groups[0].upper() if groups[0] else None
+                token2 = groups[1].upper() if groups[1] else None
+            else:
+                continue
+
+            print(
+                f"🔍 Pattern matched: {pattern}, tokens: {token1}, {token2}, excluded: {token1 in excluded_words or token2 in excluded_words}"
+            )
+
+            if token1 and token2 and token1 not in excluded_words and token2 not in excluded_words:
+                print(f"✅ Matched tokens via fallback patterns: {token1} -> {token2}")
+                return token1, token2
+
+    # Fallback to position-based extraction
     return _find_tokens_by_position(query_lower, all_tokens, chain if chain_specified else None)
 
 
@@ -241,6 +265,15 @@ def parse_swap_query(query: str) -> dict:
     token_in, token_out = extract_token_symbols(query, chain, chain_specified)
     amount = extract_amount(query)
     slippage = extract_slippage(query)
+
+    # Debug logging
+    print("🔍 Parsed swap query:")
+    print(f"   Query: {query}")
+    print(f"   Chain: {chain} (specified: {chain_specified})")
+    print(f"   Token In: {token_in} (default: {DEFAULT_TOKEN_IN})")
+    print(f"   Token Out: {token_out} (default: {DEFAULT_TOKEN_OUT})")
+    print(f"   Amount: {amount}")
+
     return {
         "chain": chain,
         "chain_specified": chain_specified,

@@ -267,6 +267,14 @@ export interface BridgeData {
 /**
  * Swap transaction details
  */
+export interface DiscoveredToken {
+  symbol: string;
+  address: string;
+  source: "token_research" | "constants" | "cache";
+  name?: string;
+  explorer_url?: string;
+}
+
 export interface SwapTransaction {
   chain: string;
   token_in_symbol: string;
@@ -285,6 +293,12 @@ export interface SwapTransaction {
   transaction_hash?: string | null;
   status: string;
   price_impact?: string;
+  swap_path?: string[];
+  rpc_url?: string;
+  discovered_tokens?: {
+    token_in?: DiscoveredToken;
+    token_out?: DiscoveredToken;
+  };
 }
 
 /**
@@ -452,6 +466,55 @@ export interface MarketInsightsTrendingToken {
 /**
  * Complete market insights data from Market Insights Agent
  */
+/**
+ * Token information from Token Research Agent
+ */
+export interface TokenInfo {
+  symbol: string;
+  name: string;
+  address?: string;
+  chain?: string;
+  decimals?: number;
+  coin_id?: string;
+  market_cap_rank?: number;
+}
+
+/**
+ * Token search result from Token Research Agent
+ */
+export interface TokenSearchResult {
+  token_symbol: string;
+  tokens: TokenInfo[];
+  source: string;
+  web_results?: Array<{ title: string; snippet: string }>;
+}
+
+/**
+ * Token discovery result from Token Research Agent
+ */
+export interface TokenDiscoveryResult {
+  total_tokens: number;
+  tokens_by_chain: {
+    ethereum?: TokenInfo[];
+    polygon?: TokenInfo[];
+    hedera?: TokenInfo[];
+  };
+  tokens: TokenInfo[];
+}
+
+/**
+ * Complete token research data from Token Research Agent
+ */
+export interface TokenResearchData {
+  type: "token_research";
+  query_type?: "search" | "discovery" | "address";
+  token_symbol?: string;
+  chain?: string;
+  search_result?: TokenSearchResult;
+  discovery_result?: TokenDiscoveryResult;
+  error?: string;
+}
+
 export interface MarketInsightsData {
   type: "market_insights";
   network?: string;
@@ -512,6 +575,7 @@ export type SwapRequirementsActionRenderProps = ActionRenderProps<
  * Callbacks to update parent component state with agent data
  */
 export interface DeFiChatProps {
+  onTokenResearchUpdate?: (data: TokenResearchData) => void;
   onBalanceUpdate?: (data: BalanceData | null) => void;
   onLiquidityUpdate?: (data: LiquidityData | MultiChainLiquidityData | null) => void;
   onSwapUpdate?: (data: SwapData | null) => void;

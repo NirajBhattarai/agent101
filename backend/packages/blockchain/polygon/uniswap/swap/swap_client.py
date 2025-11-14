@@ -50,7 +50,7 @@ def get_amounts_out(
         # Map MATIC to WMATIC for decimals lookup
         if token_in_upper == "MATIC":
             token_in_upper = "WMATIC"
-        
+
         if token_in_upper not in POLYGON_TOKENS:
             return None
 
@@ -94,11 +94,11 @@ def get_token_address_polygon(token_symbol: str) -> Optional[str]:
         Token address or None if not found
     """
     token_symbol_upper = token_symbol.upper()
-    
+
     # Map MATIC to WMATIC for swaps (native MATIC must be wrapped)
     if token_symbol_upper == "MATIC":
         token_symbol_upper = "WMATIC"
-    
+
     if token_symbol_upper not in POLYGON_TOKENS:
         return None
 
@@ -134,22 +134,50 @@ def get_swap_polygon(
     router_address = dex_config.get("router_address", "0xedf6066a2b290c185783862c7f4776a2c8077ad1")
 
     # Normalize token symbols (MATIC -> WMATIC for swaps)
-    token_in_normalized = "WMATIC" if token_in_symbol.upper() == "MATIC" else token_in_symbol.upper()
-    token_out_normalized = "WMATIC" if token_out_symbol.upper() == "MATIC" else token_out_symbol.upper()
-    
+    token_in_normalized = (
+        "WMATIC" if token_in_symbol.upper() == "MATIC" else token_in_symbol.upper()
+    )
+    token_out_normalized = (
+        "WMATIC" if token_out_symbol.upper() == "MATIC" else token_out_symbol.upper()
+    )
+
     # Get addresses using normalized symbols (get_token_address_polygon already handles MATIC -> WMATIC)
     token_in_address_normalized = get_token_address_polygon(token_in_normalized)
     token_out_address_normalized = get_token_address_polygon(token_out_normalized)
-    
+
+    # If tokens not found in constants, they should be resolved by Token Research Agent before calling this
     if not token_in_address_normalized or not token_out_address_normalized:
-        raise ValueError(
-            f"Token not found: {token_in_normalized} or {token_out_normalized} not in POLYGON_TOKENS"
-        )
+        # Don't raise error - let Token Research Agent resolve it upstream
+        print(f"⚠️  Token not found in constants: {token_in_normalized} or {token_out_normalized}")
+        # Return None addresses - will be filled by token resolver
+        if not token_in_address_normalized:
+            token_in_address_normalized = None
+        if not token_out_address_normalized:
+            token_out_address_normalized = None
+
+    # Ensure we have addresses before building path
+    if not token_in_address_normalized or not token_out_address_normalized:
+        # Addresses will be filled by token resolver upstream
+        # Return minimal config for now
+        return {
+            "chain": "polygon",
+            "token_in_symbol": token_in_normalized,
+            "token_in_address": token_in_address_normalized,
+            "token_out_symbol": token_out_normalized,
+            "token_out_address": token_out_address_normalized,
+            "amount_in": amount_in,
+            "amount_out": "0",
+            "amount_out_min": "0",
+            "swap_path": [],
+            "router_address": router_address,
+            "dex_name": dex_name_actual,
+            "slippage_tolerance": slippage_tolerance,
+        }
 
     # Calculate swap path
     # For Polygon, MATIC must be converted to WMATIC for swaps
     swap_path = []
-    
+
     # Build swap path
     if token_in_normalized == "WMATIC":
         # WMATIC -> Token (direct path, WMATIC is already wrapped)
@@ -186,15 +214,21 @@ def get_swap_polygon(
         amount_out_wei = amounts[-1]
         amount_out_float = amount_out_wei / (10**token_out_decimals)
         print(f"✅ Calculated amount_out from router: {amount_out_float} {token_out_normalized}")
-        print(f"💰 Swap Output: {amount_in} {token_in_normalized} → {amount_out_float:.6f} {token_out_normalized}")
+        print(
+            f"💰 Swap Output: {amount_in} {token_in_normalized} → {amount_out_float:.6f} {token_out_normalized}"
+        )
     else:
         # Fallback to simple estimation if router call fails
         print("⚠️ Router getAmountsOut failed, using estimation")
         amount_out_float = amount_float * 0.995
-        print(f"💰 Swap Output (estimated): {amount_in} {token_in_normalized} → {amount_out_float:.6f} {token_out_normalized}")
+        print(
+            f"💰 Swap Output (estimated): {amount_in} {token_in_normalized} → {amount_out_float:.6f} {token_out_normalized}"
+        )
 
     amount_out_min_float = amount_out_float * (1 - slippage_tolerance / 100)
-    print(f"📊 Minimum output (with {slippage_tolerance}% slippage): {amount_out_min_float:.6f} {token_out_normalized}")
+    print(
+        f"📊 Minimum output (with {slippage_tolerance}% slippage): {amount_out_min_float:.6f} {token_out_normalized}"
+    )
 
     return {
         "chain": "polygon",

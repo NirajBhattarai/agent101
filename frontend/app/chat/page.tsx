@@ -10,6 +10,7 @@ import { SwapRouterCard } from "@/components/features/swap_router";
 import { PoolCalculatorCard } from "@/components/features/pool_calculator";
 import { MarketInsightsCard } from "@/components/features/market_insights";
 import { BridgeCard } from "@/components/features/bridge";
+import { TokenResearchCard } from "@/components/features/token-research/TokenResearchCard";
 import { WalletConnect, Logo } from "@/components/shared";
 import type {
   BalanceData,
@@ -20,6 +21,7 @@ import type {
   PoolCalculatorData,
   MarketInsightsData,
   BridgeData,
+  TokenResearchData,
 } from "@/types";
 import "../copilot.css";
 import Link from "next/link";
@@ -34,6 +36,7 @@ export default function ChatPage() {
   const [poolCalculatorData, setPoolCalculatorData] = useState<PoolCalculatorData | null>(null);
   const [marketInsightsData, setMarketInsightsData] = useState<MarketInsightsData | null>(null);
   const [bridgeData, setBridgeData] = useState<BridgeData | null>(null);
+  const [tokenResearchData, setTokenResearchData] = useState<TokenResearchData | null>(null);
   const { address } = useAppKitAccount?.() || ({} as any);
   const isConnected = Boolean(address);
 
@@ -202,15 +205,16 @@ export default function ChatPage() {
               <p className="text-xs text-[#838389] mt-1">Orchestrator-mediated A2A Protocol</p>
             </div>
             <div className="flex-1 overflow-hidden">
-              <DeFiChat
-                onBalanceUpdate={setBalanceData}
-                onLiquidityUpdate={setLiquidityData}
-                onSwapUpdate={setSwapData}
-                onSwapRouterUpdate={setSwapRouterData}
-                onPoolCalculatorUpdate={setPoolCalculatorData}
-                onMarketInsightsUpdate={setMarketInsightsData}
-                onBridgeUpdate={handleBridgeUpdate}
-              />
+            <DeFiChat
+              onTokenResearchUpdate={setTokenResearchData}
+              onBalanceUpdate={setBalanceData}
+              onLiquidityUpdate={setLiquidityData}
+              onSwapUpdate={setSwapData}
+              onSwapRouterUpdate={setSwapRouterData}
+              onPoolCalculatorUpdate={setPoolCalculatorData}
+              onMarketInsightsUpdate={setMarketInsightsData}
+              onBridgeUpdate={handleBridgeUpdate}
+            />
             </div>
           </div>
 
@@ -231,7 +235,8 @@ export default function ChatPage() {
                 !swapRouterData &&
                 !poolCalculatorData &&
                 !marketInsightsData &&
-                !bridgeData && (
+                !bridgeData &&
+                !tokenResearchData && (
                   <div className="flex items-center justify-center h-[400px] bg-white/60 backdrop-blur-md rounded-xl border-2 border-dashed border-[#DBDBE5] shadow-elevation-sm">
                     <div className="text-center">
                       <div className="text-6xl mb-4">💰</div>
@@ -314,6 +319,12 @@ export default function ChatPage() {
                   return null;
                 }
               })()}
+
+              {tokenResearchData && (
+                <div className="mb-4">
+                  <TokenResearchCard data={tokenResearchData} />
+                </div>
+              )}
             </div>
           </div>
         </div>

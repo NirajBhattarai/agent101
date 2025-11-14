@@ -50,17 +50,41 @@ export const TransactionInfo: React.FC<TransactionInfoProps> = ({ transaction })
       )}
 
       <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-elevation-sm border border-[#E9E9EF]">
-        <div className="text-xs text-[#57575B] mb-1">Token In Address</div>
+        <div className="flex items-center justify-between mb-1">
+          <div className="text-xs text-[#57575B]">Token In Address</div>
+          {transaction.discovered_tokens?.token_in && (
+            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-semibold">
+              🔍 Discovered
+            </span>
+          )}
+        </div>
         <div className="text-sm font-mono text-[#010507] break-all">
           {transaction.token_in_address}
         </div>
+        {transaction.discovered_tokens?.token_in?.name && (
+          <div className="text-xs text-[#57575B] mt-1">
+            {transaction.discovered_tokens.token_in.name}
+          </div>
+        )}
       </div>
 
       <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-elevation-sm border border-[#E9E9EF]">
-        <div className="text-xs text-[#57575B] mb-1">Token Out Address</div>
+        <div className="flex items-center justify-between mb-1">
+          <div className="text-xs text-[#57575B]">Token Out Address</div>
+          {transaction.discovered_tokens?.token_out && (
+            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-semibold">
+              🔍 Discovered
+            </span>
+          )}
+        </div>
         <div className="text-sm font-mono text-[#010507] break-all">
           {transaction.token_out_address}
         </div>
+        {transaction.discovered_tokens?.token_out?.name && (
+          <div className="text-xs text-[#57575B] mt-1">
+            {transaction.discovered_tokens.token_out.name}
+          </div>
+        )}
       </div>
     </div>
   );

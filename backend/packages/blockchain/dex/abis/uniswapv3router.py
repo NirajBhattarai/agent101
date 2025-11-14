@@ -25,4 +25,3 @@ UNISWAP_V3_ROUTER_ABI = [
 ]
 
 __all__ = ["UNISWAP_V3_ROUTER_ABI"]
-

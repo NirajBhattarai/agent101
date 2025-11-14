@@ -118,6 +118,17 @@ export function getAgentStyle(agentName: string): AgentStyle {
     };
   }
 
+  // Token Research Agent - Blue/Indigo branding
+  if (nameLower.includes("token") && nameLower.includes("research")) {
+    return {
+      bgColor: "bg-gradient-to-r from-blue-100 to-indigo-100",
+      textColor: "text-blue-800",
+      borderColor: "border-blue-400",
+      icon: "🔍",
+      framework: "A2A",
+    };
+  }
+
   // Default/Unknown agent
   return {
     bgColor: "bg-gray-100",

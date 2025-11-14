@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
     process.env.MULTICHAIN_LIQUIDITY_AGENT_URL || "http://localhost:9998";
   const sentimentAgentUrl = process.env.SENTIMENT_AGENT_URL || "http://localhost:10000";
   const tradingAgentUrl = process.env.TRADING_AGENT_URL || "http://localhost:10001";
+  const tokenResearchAgentUrl =
+    process.env.TOKEN_RESEARCH_AGENT_URL || "http://localhost:10002";
   // const poolCalculatorAgentUrl = process.env.POOL_CALCULATOR_AGENT_URL || "http://localhost:9996";
   // const marketInsightsAgentUrl = process.env.MARKET_INSIGHTS_AGENT_URL || "http://localhost:9992";
   // const swapRouterAgentUrl = process.env.SWAP_ROUTER_AGENT_URL || "http://localhost:9993";
@@ -34,13 +36,14 @@ export async function POST(request: NextRequest) {
   // 4. Routing messages between orchestrator and A2A agents
   const a2aMiddlewareAgent = new A2AMiddlewareAgent({
     description:
-      "DeFi orchestrator with balance, multi-chain liquidity, pool calculator, swap, swap router, bridge, sentiment, and trading agents (Hedera, Polygon, Ethereum)",
+      "DeFi orchestrator with balance, multi-chain liquidity, pool calculator, swap, swap router, bridge, sentiment, trading, and token research agents (Hedera, Polygon, Ethereum)",
     agentUrls: [
       balanceAgentUrl, // Balance Agent (A2A) - Port 9997
       multichainLiquidityAgentUrl, // Multi-Chain Liquidity Agent (A2A) - Port 9998
       swapAgentUrl, // Swap Agent (A2A) - Port 9999
       sentimentAgentUrl, // Sentiment Agent (A2A) - Port 10000
       tradingAgentUrl, // Trading Agent (A2A) - Port 10001
+      tokenResearchAgentUrl, // Token Research Agent (A2A) - Port 10002
       // poolCalculatorAgentUrl, // Pool Calculator Agent (A2A) - Port 9996
       // marketInsightsAgentUrl, // Market Insights Agent (A2A) - Port 9992
       // swapRouterAgentUrl, // Swap Router Agent (A2A) - Port 9993

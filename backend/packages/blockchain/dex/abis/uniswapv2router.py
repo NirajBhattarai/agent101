@@ -63,4 +63,3 @@ UNISWAP_V2_ROUTER_ABI = [
 ]
 
 __all__ = ["UNISWAP_V2_ROUTER_ABI"]
-

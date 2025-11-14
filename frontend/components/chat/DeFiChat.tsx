@@ -31,10 +31,12 @@ import type {
   PoolCalculatorData,
   MarketInsightsData,
   BridgeData,
+  TokenResearchData,
   MessageActionRenderProps,
 } from "@/types";
 
 const ChatInner = ({
+  onTokenResearchUpdate,
   onBalanceUpdate,
   onLiquidityUpdate,
   onSwapUpdate,
@@ -154,8 +156,25 @@ const ChatInner = ({
             }
 
             if (parsed) {
+              // Check if it's token research data
+              // Only show TokenResearchCard if explicitly requested (not for internal swap token resolution)
+              if (parsed.type === "token_research") {
+                console.log("🔍 Token Research Data Received:", {
+                  query_type: parsed.query_type,
+                  token_symbol: parsed.token_symbol,
+                  chain: parsed.chain,
+                });
+                // Only trigger UI update if this is an explicit token research query
+                // Internal token research for swaps should not show the card
+                const isExplicitQuery = parsed.query_type === "search" || parsed.query_type === "discovery";
+                if (isExplicitQuery) {
+                  onTokenResearchUpdate?.(parsed as TokenResearchData);
+                } else {
+                  console.log("🔍 Token research was internal (for swap), not showing card");
+                }
+              }
               // Check if it's balance data
-              if (parsed.type === "balance" && parsed.balances && Array.isArray(parsed.balances)) {
+              else if (parsed.type === "balance" && parsed.balances && Array.isArray(parsed.balances)) {
                 onBalanceUpdate?.(parsed as BalanceData);
               }
               // Check if it's liquidity data (regular or parallel)
@@ -510,6 +529,7 @@ const ChatInner = ({
 };
 
 export default function DeFiChat({
+  onTokenResearchUpdate,
   onBalanceUpdate,
   onLiquidityUpdate,
   onSwapUpdate,
@@ -521,6 +541,7 @@ export default function DeFiChat({
   return (
     <CopilotKit runtimeUrl="/api/copilotkit" showDevConsole={false} agent="a2a_chat">
       <ChatInner
+        onTokenResearchUpdate={onTokenResearchUpdate}
         onBalanceUpdate={onBalanceUpdate}
         onLiquidityUpdate={onLiquidityUpdate}
         onSwapUpdate={onSwapUpdate}

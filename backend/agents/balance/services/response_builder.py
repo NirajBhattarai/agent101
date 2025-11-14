@@ -13,7 +13,6 @@ from ..core.constants import (
     CHAIN_POLYGON,
     DEFAULT_TOTAL_USD_VALUE,
     RESPONSE_TYPE,
-    WEB_SEARCH_TIMEOUT,
 )
 from ..tools import (
     get_balance_all_chains,
@@ -23,8 +22,9 @@ from ..tools import (
 )
 from ..tools.token_discovery import (
     get_popular_tokens,
-    search_token_contract_address,
 )
+
+# Token search moved to Token Research Agent
 from .token_filter import filter_balances_by_token
 
 
@@ -81,8 +81,6 @@ def build_token_balance_response(chain: str, account_address: str, token_symbol:
     """
     Build balance response for a specific token on a specific chain.
 
-    If token is not found in config, attempts web search to find contract address.
-
     Args:
         chain: Chain name
         account_address: Account address
@@ -104,54 +102,17 @@ def build_token_balance_response(chain: str, account_address: str, token_symbol:
         result["token_symbol"] = token_symbol
         return result
 
-    # Token not found in config, try web search with timeout
-    print(f"🔍 Token {token_symbol} not found in config for {chain}, searching web...")
-    try:
-        import signal
+    # Token not found in config - return empty result with error message
+    print(f"⚠️  Token {token_symbol} not found in config for {chain}")
+    print("💡 Tip: Use Token Research Agent to search for token addresses")
 
-        def timeout_handler(signum, frame):
-            raise TimeoutError(f"Web search timed out after {WEB_SEARCH_TIMEOUT} seconds")
-
-        # Set timeout for web search (Unix only)
-        if hasattr(signal, "SIGALRM"):
-            signal.signal(signal.SIGALRM, timeout_handler)
-            signal.alarm(WEB_SEARCH_TIMEOUT)
-
-        token_info = search_token_contract_address(token_symbol, chain)
-
-        if hasattr(signal, "SIGALRM"):
-            signal.alarm(0)  # Cancel alarm
-    except TimeoutError as e:
-        print(f"⏱️ {e}")
-        token_info = None
-    except Exception as e:
-        print(f"❌ Error during web search: {e}")
-        token_info = None
-
-    if token_info:
-        contract_address = token_info.get("contract_address")
-        if contract_address:
-            # Try querying with contract address (then filter by token_symbol)
-            result = build_balance_response(chain, account_address, contract_address)
-            # Filter to ensure only the requested token is returned
-            if result.get("balances"):
-                filtered_balances = filter_balances_by_token(result["balances"], token_symbol)
-                if filtered_balances:
-                    result["balances"] = filtered_balances
-                    result["token_symbol"] = token_symbol
-                    return result
-
-    # If still not found, return error response
-    return {
-        "type": RESPONSE_TYPE,
-        "chain": chain,
-        "account_address": account_address,
-        "token_symbol": token_symbol,
-        "balances": [],
-        "total_usd_value": DEFAULT_TOTAL_USD_VALUE,
-        "error": f"Token {token_symbol} not found on {chain}. Could not resolve contract address.",
-        "search_attempted": True,
-    }
+    # Return empty balance result
+    result["balances"] = []
+    result["token_symbol"] = token_symbol
+    result["error"] = (
+        f"Token {token_symbol} not found in configuration for {chain}. Use Token Research Agent to search for token addresses."
+    )
+    return result
 
 
 def build_all_chains_token_response(account_address: str, token_symbol: str) -> dict:
