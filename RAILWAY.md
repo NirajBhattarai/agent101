@@ -28,7 +28,7 @@ Deploy each agent as a **separate Railway service** so they can scale independen
 1. Click "New Service" → "GitHub Repo" (or "Empty Service")
 2. **Service Name**: `orchestrator-agent`
 3. **Root Directory**: `backend` (IMPORTANT: Set this to `backend`)
-4. **Build Command**: `pip install uv && uv sync` (or leave empty to use nixpacks.toml)
+4. **Build Command**: `python3 -m pip install --upgrade pip && python3 -m pip install uv && uv sync` (or leave empty to use railway.toml)
 5. **Start Command**: `uv run -m agents.orchestrator.orchestrator`
 6. **Environment Variables**:
    ```bash
@@ -45,7 +45,7 @@ Deploy each agent as a **separate Railway service** so they can scale independen
 1. Click "New Service" → "GitHub Repo" (or "Empty Service")
 2. **Service Name**: `balance-agent`
 3. **Root Directory**: `backend` (IMPORTANT: Set this to `backend`)
-4. **Build Command**: `pip install uv && uv sync` (or leave empty to use nixpacks.toml)
+4. **Build Command**: `python3 -m pip install --upgrade pip && python3 -m pip install uv && uv sync` (or leave empty to use railway.toml)
 5. **Start Command**: `uv run -m agents.balance`
 6. **Environment Variables**:
    ```bash
@@ -59,7 +59,7 @@ Deploy each agent as a **separate Railway service** so they can scale independen
 1. Click "New Service" → "GitHub Repo" (or "Empty Service")
 2. **Service Name**: `liquidity-agent`
 3. **Root Directory**: `backend` (IMPORTANT: Set this to `backend`)
-4. **Build Command**: `pip install uv && uv sync` (or leave empty to use nixpacks.toml)
+4. **Build Command**: `python3 -m pip install --upgrade pip && python3 -m pip install uv && uv sync` (or leave empty to use railway.toml)
 5. **Start Command**: `uv run -m agents.multichain_liquidity`
 6. **Environment Variables**:
    ```bash
@@ -76,7 +76,7 @@ Deploy each agent as a **separate Railway service** so they can scale independen
 1. Click "New Service" → "GitHub Repo" (or "Empty Service")
 2. **Service Name**: `swap-agent`
 3. **Root Directory**: `backend` (IMPORTANT: Set this to `backend`)
-4. **Build Command**: `pip install uv && uv sync` (or leave empty to use nixpacks.toml)
+4. **Build Command**: `python3 -m pip install --upgrade pip && python3 -m pip install uv && uv sync` (or leave empty to use railway.toml)
 5. **Start Command**: `uv run -m agents.swap`
 6. **Environment Variables**:
    ```bash

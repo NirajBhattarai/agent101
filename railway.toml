@@ -1,9 +1,14 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd backend && pip install uv && uv sync"
+# Note: If Root Directory is set to "backend", buildCommand runs from backend directory
+# If Root Directory is empty, use: cd backend && python3 -m pip install --upgrade pip && python3 -m pip install uv && uv sync
+buildCommand = "python3 -m pip install --upgrade pip && python3 -m pip install uv && uv sync"
 
 [deploy]
-startCommand = "cd backend && uv run -m agents.orchestrator.orchestrator"
+# Note: Start command should be set per service in Railway dashboard
+# Orchestrator: uv run -m agents.orchestrator.orchestrator
+# Balance: uv run -m agents.balance
+# Liquidity: uv run -m agents.multichain_liquidity
+# Swap: uv run -m agents.swap
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-
