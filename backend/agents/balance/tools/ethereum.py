@@ -149,7 +149,9 @@ def _get_all_token_balances(w3: Web3, account_address: str) -> list:
     return balances
 
 
-def get_balance_ethereum(account_address: str, token_address: Optional[str] = None) -> dict:
+def get_balance_ethereum(
+    account_address: str, token_address: Optional[str] = None
+) -> dict:
     """
     Get token balance for an account on Ethereum.
 
@@ -189,16 +191,28 @@ def get_balance_ethereum(account_address: str, token_address: Optional[str] = No
         account_address = w3.to_checksum_address(account_address)
 
         balances = []
-        # Get native ETH balance
-        native_balance = get_native_eth_balance(account_address)
-        if isinstance(native_balance, dict):
-            balances.append(native_balance)
-
+        
+        # Check if token_address is "ETH" (native token)
+        token_address_upper = token_address.upper() if token_address else None
+        is_eth_query = token_address_upper == "ETH" or token_address_upper == "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        
         if token_address:
-            token_balance = _get_token_balance(w3, account_address, token_address)
-            if isinstance(token_balance, dict):
-                balances.append(token_balance)
+            # Specific token query
+            if is_eth_query:
+                # Only return native ETH balance
+                native_balance = get_native_eth_balance(account_address)
+                if isinstance(native_balance, dict):
+                    balances.append(native_balance)
+            else:
+                # Get specific token balance (not ETH)
+                token_balance = _get_token_balance(w3, account_address, token_address)
+                if isinstance(token_balance, dict):
+                    balances.append(token_balance)
         else:
+            # Get all balances (native ETH + all tokens)
+            native_balance = get_native_eth_balance(account_address)
+            if isinstance(native_balance, dict):
+                balances.append(native_balance)
             all_balances = _get_all_token_balances(w3, account_address)
             if isinstance(all_balances, list):
                 balances.extend(all_balances)

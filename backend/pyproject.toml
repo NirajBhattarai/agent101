@@ -38,6 +38,8 @@ dependencies = [
     # ag-ui-adk: AG-UI Protocol adapter for Google ADK agents
     # Allows ADK agents to communicate with the frontend using AG-UI Protocol
     "ag-ui-adk>=0.0.1",
+    # Token discovery and search
+    "coingecko>=0.13.0",
 ]
 
 [project.optional-dependencies]

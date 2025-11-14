@@ -56,6 +56,12 @@ export async function POST(request: NextRequest) {
          - Fetches account balance information from multiple blockchain chains including Ethereum, Polygon, and Hedera
          - Can query specific chains or get balances from all chains
          - Provides comprehensive balance data including native token balances, token balances, and USD values
+         - **ENHANCED FEATURES**:
+           * Specific token on chain: "get USDT on Ethereum"
+           * Token across all chains: "get USDT balance"
+           * **Popular tokens: "get popular tokens" → Fetches trending tokens and returns balances**
+           * Web search fallback for unknown tokens
+         - **CRITICAL**: "get popular tokens" is a VALID query - route it directly to Balance Agent
 
       2. **Swap Agent** (A2A)
          - Handles token swaps on blockchain chains including Ethereum, Polygon, and Hedera
@@ -124,14 +130,18 @@ export async function POST(request: NextRequest) {
       0. **FIRST STEP - Gather Requirements**:
          
          **For Balance Queries**:
-         - Before doing ANYTHING else when user asks for balance, call 'gather_balance_requirements' to collect essential information
-         - Try to extract any mentioned details from the user's message (account address, chain, token)
-         - Pass any extracted values as parameters to pre-fill the form:
-           * accountAddress: Extract account address if mentioned (e.g., "0.0.123456", "0x1234...")
-           * chain: Extract chain if mentioned (e.g., "hedera", "polygon") or default to "all"
-           * tokenAddress: Extract token if mentioned (e.g., "USDC", "HBAR")
-         - Wait for the user to submit the complete requirements
-         - Use the returned values for all subsequent agent calls
+         - **EXCEPTION - Popular Tokens**: If user says "get popular tokens", "show trending tokens", "top tokens", etc.
+           * DO NOT call 'gather_balance_requirements'
+           * Call Balance Agent directly with the query AS-IS: "get popular tokens"
+           * The Balance Agent will automatically fetch trending tokens and return balances
+         - **Standard Balance Queries**: Before doing ANYTHING else when user asks for balance, call 'gather_balance_requirements' to collect essential information
+           * Try to extract any mentioned details from the user's message (account address, chain, token)
+           * Pass any extracted values as parameters to pre-fill the form:
+             - accountAddress: Extract account address if mentioned (e.g., "0.0.123456", "0x1234...")
+             - chain: Extract chain if mentioned (e.g., "hedera", "polygon") or default to "all"
+             - tokenAddress: Extract token if mentioned (e.g., "USDC", "HBAR")
+           * Wait for the user to submit the complete requirements
+           * Use the returned values for all subsequent agent calls
 
          **For Liquidity Queries** (MANDATORY PAYMENT REQUIRED):
          - **CRITICAL: Payment is ALWAYS required for liquidity queries - NO EXCEPTIONS**
@@ -261,7 +271,8 @@ export async function POST(request: NextRequest) {
          - **CRITICAL RULE**: DO NOT call Bridge Agent again after getting options - the frontend handles everything
 
       CRITICAL RULES (MUST FOLLOW IN ORDER):
-      - **ALWAYS START by calling 'gather_balance_requirements' FIRST when user asks for balance information**
+      - **EXCEPTION**: "get popular tokens" → Call Balance Agent directly, skip requirements gathering
+      - **ALWAYS START by calling 'gather_balance_requirements' FIRST when user asks for balance information** (except popular tokens)
       - **FOR LIQUIDITY QUERIES - MANDATORY 3-STEP PROCESS (NO EXCEPTIONS):**
         1. **FIRST**: Call 'gather_liquidity_payment' - User signs and verifies payment (0.1 HBAR)
         2. **SECOND**: After payment is verified, call 'gather_liquidity_requirements'
@@ -297,6 +308,8 @@ export async function POST(request: NextRequest) {
       - Tool results may contain JSON strings - use them directly without additional parsing attempts
 
       REQUEST EXTRACTION EXAMPLES:
+      - "get popular tokens" -> Balance Agent: "get popular tokens" (direct call, no requirements)
+      - "show trending tokens" -> Balance Agent: "show trending tokens" (direct call, no requirements)
       - "Show me my balance on Polygon" -> gather_balance_requirements with chain: "polygon"
       - "What's my HBAR balance for account 0.0.123456?" -> gather_balance_requirements with accountAddress: "0.0.123456", chain: "hedera"
       - "Get balance for 0x1234... on all chains" -> gather_balance_requirements with accountAddress: "0x1234...", chain: "all"

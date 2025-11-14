@@ -156,7 +156,9 @@ def _get_all_token_balances(api_base: str, account_identifier: str) -> list:
     return balances
 
 
-def get_balance_hedera(account_address: str, token_address: Optional[str] = None) -> dict:
+def get_balance_hedera(
+    account_address: str, token_address: Optional[str] = None
+) -> dict:
     """
     Get token balance for an account on Hedera chain.
 
@@ -190,17 +192,29 @@ def get_balance_hedera(account_address: str, token_address: Optional[str] = None
         account_identifier = get_account_identifier_for_api(account_address, account_id)
 
         balances = []
-        # Get native HBAR balance using account_identifier (like agentflow101)
-        native_balance = get_native_hbar_balance(account_identifier, api_base)
-        if isinstance(native_balance, dict):
-            balances.append(native_balance)
-
+        
+        # Check if token_address is "HBAR" (native token)
+        token_address_upper = token_address.upper() if token_address else None
+        is_hbar_query = token_address_upper == "HBAR" or token_address_upper == "0.0.0"
+        
         if token_address:
-            token_id = _resolve_token_address(token_address)
-            token_balance = _get_specific_token_balance(api_base, account_identifier, token_id)
-            if isinstance(token_balance, dict):
-                balances.append(token_balance)
+            # Specific token query
+            if is_hbar_query:
+                # Only return native HBAR balance
+                native_balance = get_native_hbar_balance(account_identifier, api_base)
+                if isinstance(native_balance, dict):
+                    balances.append(native_balance)
+            else:
+                # Get specific token balance (not HBAR)
+                token_id = _resolve_token_address(token_address)
+                token_balance = _get_specific_token_balance(api_base, account_identifier, token_id)
+                if isinstance(token_balance, dict):
+                    balances.append(token_balance)
         else:
+            # Get all balances (native HBAR + all tokens)
+            native_balance = get_native_hbar_balance(account_identifier, api_base)
+            if isinstance(native_balance, dict):
+                balances.append(native_balance)
             all_balances = _get_all_token_balances(api_base, account_identifier)
             if isinstance(all_balances, list):
                 balances.extend(all_balances)

@@ -149,7 +149,9 @@ def _get_all_token_balances(w3: Web3, account_address: str) -> list:
     return balances
 
 
-def get_balance_polygon(account_address: str, token_address: Optional[str] = None) -> dict:
+def get_balance_polygon(
+    account_address: str, token_address: Optional[str] = None
+) -> dict:
     """
     Get token balance for an account on Polygon.
 
@@ -190,16 +192,28 @@ def get_balance_polygon(account_address: str, token_address: Optional[str] = Non
         account_address = w3.to_checksum_address(account_address)
 
         balances = []
-        # Get native MATIC balance
-        native_balance = get_native_matic_balance(account_address)
-        if isinstance(native_balance, dict):
-            balances.append(native_balance)
-
+        
+        # Check if token_address is "MATIC" (native token)
+        token_address_upper = token_address.upper() if token_address else None
+        is_matic_query = token_address_upper == "MATIC" or token_address_upper == "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        
         if token_address:
-            token_balance = _get_token_balance(w3, account_address, token_address)
-            if isinstance(token_balance, dict):
-                balances.append(token_balance)
+            # Specific token query
+            if is_matic_query:
+                # Only return native MATIC balance
+                native_balance = get_native_matic_balance(account_address)
+                if isinstance(native_balance, dict):
+                    balances.append(native_balance)
+            else:
+                # Get specific token balance (not MATIC)
+                token_balance = _get_token_balance(w3, account_address, token_address)
+                if isinstance(token_balance, dict):
+                    balances.append(token_balance)
         else:
+            # Get all balances (native MATIC + all tokens)
+            native_balance = get_native_matic_balance(account_address)
+            if isinstance(native_balance, dict):
+                balances.append(native_balance)
             all_balances = _get_all_token_balances(w3, account_address)
             if isinstance(all_balances, list):
                 balances.extend(all_balances)

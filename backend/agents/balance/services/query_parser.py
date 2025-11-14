@@ -15,6 +15,12 @@ from ..core.constants import (
     DEFAULT_ACCOUNT_ADDRESS,
     DEFAULT_CHAIN,
 )
+from .token_parser import (
+    extract_token_symbol,
+    is_all_chains_token_query,
+    is_popular_tokens_query,
+    is_token_specific_query,
+)
 
 
 def extract_hedera_address(query: str) -> Optional[str]:
@@ -69,3 +75,34 @@ def parse_chain(query: str, account_address: str) -> str:
     if chain:
         return chain
     return detect_chain_from_address(account_address)
+
+
+def parse_query_intent(query: str) -> dict:
+    """
+    Parse query to determine intent and extract parameters.
+
+    Returns:
+        Dictionary with:
+        - account_address: Extracted account address
+        - chain: Chain name or "all"
+        - token_symbol: Token symbol if specified
+        - is_token_specific: Whether query is for a specific token
+        - is_popular_tokens: Whether query is for popular tokens
+        - is_all_chains_token: Whether query is for token across all chains
+    """
+    account_address = extract_account_address(query)
+    chain = parse_chain(query, account_address)
+    token_symbol = extract_token_symbol(query)
+
+    # Adjust chain if token query without chain specification
+    if is_all_chains_token_query(query) and token_symbol:
+        chain = CHAIN_ALL
+
+    return {
+        "account_address": account_address,
+        "chain": chain,
+        "token_symbol": token_symbol,
+        "is_token_specific": is_token_specific_query(query),
+        "is_popular_tokens": is_popular_tokens_query(query),
+        "is_all_chains_token": is_all_chains_token_query(query),
+    }
