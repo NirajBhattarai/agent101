@@ -84,6 +84,13 @@ export const SwapCard: React.FC<SwapCardProps> = ({ data, onSwapInitiate }) => {
     }
   }, [approvalStatus]);
 
+  // Close approval dialog when swap is complete or transaction is confirmed
+  useEffect(() => {
+    if (swappingState === "done" || txHash) {
+      setShowApprovalDialog(false);
+    }
+  }, [swappingState, txHash]);
+
   /**
    * Execute swap - uses centralized swap executor
    */
