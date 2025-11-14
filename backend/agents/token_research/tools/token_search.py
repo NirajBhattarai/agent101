@@ -123,6 +123,12 @@ def search_token_contract_address(token_symbol: str, chain: str) -> Optional[dic
         platforms = coin_data.get("platforms", {})
         contract_address = platforms.get(platform_id)
 
+        # Get decimals from detail_platforms if available
+        decimals = 18  # Default
+        detail_platforms = coin_data.get("detail_platforms", {})
+        if platform_id in detail_platforms:
+            decimals = detail_platforms[platform_id].get("decimal_place", 18)
+
         if contract_address:
             return {
                 "token_symbol": token_symbol.upper(),
@@ -131,6 +137,7 @@ def search_token_contract_address(token_symbol: str, chain: str) -> Optional[dic
                 "token_id": coin_id,
                 "name": coin_data.get("name", ""),
                 "symbol": coin_data.get("symbol", "").upper(),
+                "decimals": decimals,
             }
 
         return None

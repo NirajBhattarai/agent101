@@ -52,10 +52,18 @@ def _get_swap_config(
     amount: str,
     account: str,
     slippage: float,
+    token_out_decimals: Optional[int] = None,
 ) -> dict:
     """Get swap configuration for chain."""
     if chain == "hedera":
-        return get_swap_hedera(token_in, token_out, amount, account or "", slippage)
+        return get_swap_hedera(
+            token_in,
+            token_out,
+            amount,
+            account or "",
+            slippage,
+            token_out_decimals=token_out_decimals,
+        )
     if chain == "polygon":
         return get_swap_polygon(token_in, token_out, amount, account or "", slippage)
     if chain == "ethereum":
@@ -90,11 +98,24 @@ def _fetch_balance(chain: str, account: str, token_address: str, token_symbol: s
         if chain == "hedera":
             if is_native_token and token_symbol_upper == "HBAR":
                 # Get native HBAR balance directly
-                from packages.blockchain.hedera.balance import get_native_hbar_balance
+                from packages.blockchain.hedera.balance import (
+                    get_hedera_api_base,
+                    get_native_hbar_balance,
+                )
 
-                result = get_native_hbar_balance(account, api_base=None)
+                # Get API base URL (mainnet)
+                api_base = get_hedera_api_base("mainnet")
+                result = get_native_hbar_balance(account, api_base=api_base)
                 if result.get("balance"):
-                    return float(result.get("balance", "0"))
+                    balance_str = result.get("balance", "0")
+                    # Handle string balance (from get_native_hbar_balance)
+                    try:
+                        return float(balance_str)
+                    except (ValueError, TypeError):
+                        print(f"⚠️ Warning: Could not convert balance '{balance_str}' to float")
+                        return 0.0
+                # If balance is 0 or error, still return 0.0 (don't fall through)
+                return 0.0
             result = get_balance_hedera(account, token_address=token_address)
         elif chain == "polygon":
             if is_native_token and token_symbol_upper == "MATIC":
@@ -412,6 +433,13 @@ def execute_swap(
 
     # Step 1: Get swap configuration (token addresses, paths, etc.)
     # This will use constants if available, or we'll need to patch addresses from token_resolution
+    # Get token_out_decimals from token_resolution if available (for accurate amount calculation)
+    # This ensures we use correct decimals even if token is from constants, cache, or token_research
+    token_out_info = token_resolution.get("token_out_info")
+    token_out_decimals = None
+    if token_out_info:
+        token_out_decimals = token_out_info.get("decimals")
+
     swap_config = _get_swap_config(
         chain,
         token_in_symbol,
@@ -419,6 +447,7 @@ def execute_swap(
         amount_in,
         account_address,
         slippage_tolerance,
+        token_out_decimals=token_out_decimals if chain == "hedera" else None,
     )
 
     # If tokens were resolved via Token Research, update swap_config with discovered addresses

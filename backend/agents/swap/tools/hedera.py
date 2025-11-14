@@ -4,6 +4,8 @@ Hedera swap tool.
 Tool for executing swaps on Hedera chain using SaucerSwap.
 """
 
+from typing import Optional
+
 from packages.blockchain.hedera.saucerswap.swap import get_swap_hedera as _get_swap_hedera
 
 
@@ -13,6 +15,7 @@ def get_swap_hedera(
     amount_in: str,
     account_address: str,
     slippage_tolerance: float = 0.5,
+    token_out_decimals: Optional[int] = None,
 ) -> dict:
     """
     Get swap configuration for Hedera chain.
@@ -23,6 +26,7 @@ def get_swap_hedera(
         amount_in: Amount to swap (human-readable format)
         account_address: Account address for the swap
         slippage_tolerance: Slippage tolerance percentage (default: 0.5)
+        token_out_decimals: Optional token out decimals for accurate amount calculation
 
     Returns:
         Dictionary with swap configuration
@@ -33,4 +37,5 @@ def get_swap_hedera(
         amount_in=amount_in,
         account_address=account_address,
         slippage_tolerance=slippage_tolerance,
+        token_out_decimals=token_out_decimals,
     )

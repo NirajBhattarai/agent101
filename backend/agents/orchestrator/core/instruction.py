@@ -26,7 +26,7 @@ ORCHESTRATOR_INSTRUCTION = """
          * Popular tokens: "get popular tokens" → Fetches trending tokens and returns their balances
        - Format: "Get balance for [account_address] on [chain]" or "Get balance for [account_address]"
        - Token-specific format: "Get [token_symbol] balance on [chain]" or "Get [token_symbol] balance"
-       - Example queries:
+       - Example queries: 
          * "Get balance for 0x1234... on ethereum"
          * "Get balance for 0.0.123456 on hedera"
          * "get USDT on Ethereum"
@@ -142,7 +142,7 @@ ORCHESTRATOR_INSTRUCTION = """
     **CRITICAL ROUTING RULES**:
     - **Balance queries** → ALWAYS use **Balance Agent**
     - **Sentiment queries** (trending words, social volume, sentiment analysis) → use **Sentiment Agent**
-    - **DO NOT confuse**:
+    - **DO NOT confuse**: 
       * "get USDT balance" = Balance query → Balance Agent
       * "What are trending words in crypto?" = Sentiment query → Sentiment Agent
       * "get popular tokens" = Balance query (wants token balances) → Balance Agent
@@ -156,7 +156,7 @@ ORCHESTRATOR_INSTRUCTION = """
     - "show popular tokens" → Balance Agent: "show popular tokens" (pass AS-IS)
     - "top tokens" → Balance Agent: "top tokens" (pass AS-IS)
     - "what's my HBAR balance?" → Balance Agent: "Get HBAR balance for [account]"
-
+    
     **CRITICAL FOR POPULAR TOKENS**:
     - When user says "get popular tokens", "show trending tokens", "top tokens", etc.
     - DO NOT reformat the query
@@ -394,7 +394,7 @@ ORCHESTRATOR_INSTRUCTION = """
 
     IMPORTANT: Once you have received ANY response from an agent (success or error), do NOT call that same
     agent again for the same information. Use what you received and present it to the user.
-
+    
     **TOKEN DISCOVERY RESPONSE FORMAT**:
     - Token discovery responses will have: "query_type": "token_discovery", "success": true/false
     - Successful discovery: "success": true, "discovery_result" with tokens, OR tokens in "balances" array

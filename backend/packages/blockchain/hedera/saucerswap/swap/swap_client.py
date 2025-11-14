@@ -46,11 +46,17 @@ def get_amounts_out(
     """
     try:
         # Get token decimals for amount conversion
+        # For HBAR swaps, use WHBAR decimals (8) since swap path uses WHBAR and WHBAR has 8 decimals
         token_in_upper = token_in_symbol.upper()
-        if token_in_upper not in HEDERA_TOKENS:
+        if token_in_upper == "HBAR":
+            # HBAR swaps use WHBAR in the path, so use WHBAR decimals (8, same as HBAR)
+            whbar_info = HEDERA_TOKENS.get("WHBAR", {})
+            decimals = whbar_info.get("decimals", 8)
+        elif token_in_upper not in HEDERA_TOKENS:
             return None
+        else:
+            decimals = HEDERA_TOKENS[token_in_upper].get("decimals", 18)
 
-        decimals = HEDERA_TOKENS[token_in_upper].get("decimals", 18)
         amount_float = float(amount_in)
         amount_in_wei = int(amount_float * (10**decimals))
 
@@ -106,6 +112,7 @@ def get_swap_hedera(
     account_address: str,
     slippage_tolerance: float = 0.5,
     dex_name: Optional[str] = None,
+    token_out_decimals: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Get swap configuration for Hedera chain using SaucerSwap.
@@ -210,13 +217,16 @@ def get_swap_hedera(
     )
 
     if amounts and len(amounts) > 0:
-        # Get token out decimals
-        token_out_upper = token_out_symbol.upper()
-        token_out_decimals = HEDERA_TOKENS.get(token_out_upper, {}).get("decimals", 18)
+        # Get token out decimals - use provided decimals from token_resolver if available
+        if token_out_decimals is None:
+            token_out_upper = token_out_symbol.upper()
+            token_out_decimals = HEDERA_TOKENS.get(token_out_upper, {}).get("decimals", 18)
+
         # Last element in amounts array is the output amount
         amount_out_wei = amounts[-1]
         amount_out_float = amount_out_wei / (10**token_out_decimals)
         print(f"✅ Calculated amount_out from router: {amount_out_float} {token_out_symbol}")
+        print(f"   Amount out (wei): {amount_out_wei}, Decimals: {token_out_decimals}")
         print(
             f"💰 Swap Output: {amount_in} {token_in_symbol.upper()} → {amount_out_float:.6f} {token_out_symbol.upper()}"
         )

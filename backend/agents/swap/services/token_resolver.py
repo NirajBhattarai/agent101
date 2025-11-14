@@ -33,11 +33,29 @@ def resolve_token_address(token_symbol: str, chain: str) -> Optional[Dict[str, A
             token_data = HEDERA_TOKENS[token_symbol_upper]
             address_evm = token_data.get("address")
             address_hedera = token_data.get("tokenid")
+
+            # Always try to get accurate decimals from CoinGecko for better precision
+            # This is especially important for tokens where constants might have wrong decimals
+            decimals = token_data.get("decimals", 18)
+            try:
+                token_info_online = search_token_contract_address(token_symbol, chain)
+                if token_info_online and token_info_online.get("decimals"):
+                    # Use decimals from CoinGecko if available (more accurate)
+                    decimals = token_info_online.get("decimals", decimals)
+                    print(
+                        f"📊 Using decimals from CoinGecko for {token_symbol_upper}: {decimals} (was {token_data.get('decimals', 18)} in constants)"
+                    )
+            except Exception as e:
+                print(
+                    f"⚠️  Could not fetch decimals from CoinGecko for {token_symbol_upper}: {e}, using constants value"
+                )
+                # Continue with constants decimals
+
             result = {
                 "symbol": token_symbol_upper,
                 "address_evm": address_evm,
                 "address_hedera": address_hedera,
-                "decimals": token_data.get("decimals", 18),
+                "decimals": decimals,
                 "source": "constants",
             }
             # Add explorer URL (use Hedera token ID if available, otherwise EVM address)
@@ -117,6 +135,9 @@ def resolve_token_address(token_symbol: str, chain: str) -> Optional[Dict[str, A
 
     if token_info and token_info.get("contract_address"):
         address = token_info.get("contract_address")
+        # Get decimals from CoinGecko if available, otherwise use default
+        decimals = token_info.get("decimals", 18)
+
         if chain == "hedera":
             # For Hedera, we need to convert EVM address to Hedera token ID if possible
             from packages.blockchain.hedera.utils import solidity_address_to_token_id
@@ -126,7 +147,7 @@ def resolve_token_address(token_symbol: str, chain: str) -> Optional[Dict[str, A
                 "symbol": token_symbol_upper,
                 "address_evm": address,
                 "address_hedera": token_id,
-                "decimals": 18,  # Default, should be fetched from CoinGecko
+                "decimals": decimals,  # From CoinGecko
                 "source": "token_research",
                 "name": token_info.get("name", ""),
             }
@@ -139,7 +160,7 @@ def resolve_token_address(token_symbol: str, chain: str) -> Optional[Dict[str, A
             result = {
                 "symbol": token_symbol_upper,
                 "address": address,
-                "decimals": 18,  # Default, should be fetched from CoinGecko
+                "decimals": decimals,  # From CoinGecko
                 "source": "token_research",
                 "name": token_info.get("name", ""),
             }
