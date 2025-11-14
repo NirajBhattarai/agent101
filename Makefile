@@ -2,7 +2,7 @@
 	backend-dev backend-install backend-format backend-lint backend-test \
 	backend-test-saucerswap backend-test-saucerswap-coverage backend-test-all backend-test-watch \
 	backend-test-ethereum backend-test-polygon backend-test-uniswap \
-	agent-orchestrator agent-liquidity agents-start agents-stop agents-status agents-restart help
+	agent-orchestrator agent-liquidity agent-balance agents-start agents-stop agents-status agents-restart help
 
 # Default target
 help:
@@ -37,7 +37,8 @@ help:
 	@echo "Agents:"
 	@echo "  make agent-orchestrator           - Start Orchestrator Agent (port 9000)"
 	@echo "  make agent-liquidity              - Start Multi-Chain Liquidity Agent (port 9998)"
-	@echo "  make agents-start                - Start all agents (orchestrator + liquidity)"
+	@echo "  make agent-balance                - Start Balance Agent (port 9997)"
+	@echo "  make agents-start                - Start all agents (orchestrator + liquidity + balance)"
 	@echo "  make agents-stop                 - Stop all running agents"
 	@echo "  make agents-status               - Check status of all agents"
 	@echo "  make agents-restart              - Restart all agents"
@@ -131,7 +132,7 @@ backend-test-uniswap:
 	cd backend && uv run pytest packages/blockchain/ethereum/uniswap/__test__/ packages/blockchain/polygon/uniswap/__test__/ -v
 
 # Agent server targets (similar to agentflow101)
-.PHONY: agents-start agents-stop agents-status agents-restart agent-orchestrator agent-liquidity
+.PHONY: agents-start agents-stop agents-status agents-restart agent-orchestrator agent-liquidity agent-balance
 
 # Individual agent targets (can be run separately)
 agent-orchestrator:
@@ -144,11 +145,17 @@ agent-liquidity:
 	@echo "   Multi-Chain Liquidity Agent: http://0.0.0.0:9998"
 	cd backend && uv run -m agents.multichain_liquidity
 
+agent-balance:
+	@echo "💰 Starting Balance Agent..."
+	@echo "   Balance Agent: http://0.0.0.0:9997"
+	cd backend && uv run -m agents.balance
+
 # Start all agents in parallel (similar to agentflow101's dev-all-agents)
 agents-start:
 	@echo "🚀 Starting all agents..."
 	@echo "   Orchestrator Agent: http://0.0.0.0:9000"
 	@echo "   Multi-Chain Liquidity Agent: http://0.0.0.0:9998"
+	@echo "   Balance Agent: http://0.0.0.0:9997"
 	@echo ""
 	@echo "🛑 Stopping any existing agents..."
 	@$(MAKE) agents-stop >/dev/null 2>&1 || true
@@ -160,13 +167,14 @@ agents-start:
 	@echo "Starting agents in parallel (logs will appear in terminal)..."
 	@echo "Press Ctrl+C to stop all agents"
 	@echo ""
-	@make -j2 agent-orchestrator agent-liquidity
+	@make -j3 agent-orchestrator agent-liquidity agent-balance
 
 # Stop all running agents (without using PID files)
 agents-stop:
 	@echo "🛑 Stopping all agents..."
 	@pkill -f "agents.orchestrator.orchestrator" 2>/dev/null && echo "  ✓ Stopped Orchestrator Agent" || echo "  ⚠ Orchestrator Agent not running"
 	@pkill -f "agents.multichain_liquidity" 2>/dev/null && echo "  ✓ Stopped Liquidity Agent" || echo "  ⚠ Liquidity Agent not running"
+	@pkill -f "agents.balance" 2>/dev/null && echo "  ✓ Stopped Balance Agent" || echo "  ⚠ Balance Agent not running"
 	@rm -rf $(AGENT_PID_DIR) 2>/dev/null || true
 	@sleep 1
 	@echo "✅ All agents stopped"

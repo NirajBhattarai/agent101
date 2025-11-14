@@ -9,7 +9,7 @@ import { A2AMiddlewareAgent } from "@ag-ui/a2a-middleware";
 
 export async function POST(request: NextRequest) {
   // STEP 1: Define A2A agent URLs
-  // const balanceAgentUrl = process.env.BALANCE_AGENT_URL || "http://localhost:9997";
+  const balanceAgentUrl = process.env.BALANCE_AGENT_URL || "http://localhost:9997";
   // const swapAgentUrl = process.env.SWAP_AGENT_URL || "http://localhost:9995";
   const multichainLiquidityAgentUrl =
     process.env.MULTICHAIN_LIQUIDITY_AGENT_URL || "http://localhost:9998";
@@ -34,22 +34,22 @@ export async function POST(request: NextRequest) {
     description:
       "DeFi orchestrator with balance, multi-chain liquidity, pool calculator, swap, swap router, and bridge agents (Hedera, Polygon, Ethereum)",
     agentUrls: [
-      // balanceAgentUrl, // Balance Agent (ADK) - Port 9997
-      multichainLiquidityAgentUrl, // Multi-Chain Liquidity Agent (ADK) - Port 9998
-      // poolCalculatorAgentUrl, // Pool Calculator Agent (ADK) - Port 9996
-      // marketInsightsAgentUrl, // Market Insights Agent (ADK) - Port 9992
-      // swapAgentUrl, // Swap Agent (ADK) - Port 9995
-      // swapRouterAgentUrl, // Swap Router Agent (ADK) - Port 9993
-      // bridgeAgentUrl, // Bridge Agent (ADK) - Port 9998
+      balanceAgentUrl, // Balance Agent (A2A) - Port 9997
+      multichainLiquidityAgentUrl, // Multi-Chain Liquidity Agent (A2A) - Port 9998
+      // poolCalculatorAgentUrl, // Pool Calculator Agent (A2A) - Port 9996
+      // marketInsightsAgentUrl, // Market Insights Agent (A2A) - Port 9992
+      // swapAgentUrl, // Swap Agent (A2A) - Port 9995
+      // swapRouterAgentUrl, // Swap Router Agent (A2A) - Port 9993
+      // bridgeAgentUrl, // Bridge Agent (A2A) - Port 9998
     ],
     orchestrationAgent,
     instructions: `
-      You are a DeFi orchestrator that coordinates specialized agents to fetch and aggregate on-chain balance, liquidity, and swap information across chains (Hedera, Polygon).
+      You are a DeFi orchestrator that coordinates specialized agents to fetch and aggregate on-chain balance, liquidity, and swap information across chains (Ethereum, Polygon, Hedera).
 
       AVAILABLE SPECIALIZED AGENTS:
 
-      1. **Balance Agent** (ADK)
-         - Fetches account balance information from multiple blockchain chains including Polygon and Hedera
+      1. **Balance Agent** (A2A)
+         - Fetches account balance information from multiple blockchain chains including Ethereum, Polygon, and Hedera
          - Can query specific chains or get balances from all chains
          - Provides comprehensive balance data including native token balances, token balances, and USD values
 
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
          - Use the returned values for all subsequent agent calls
          
       1. **Balance Agent** - If user requests balance information
-         - Pass: wallet address and chain (polygon, hedera, or all) from gathered requirements
+         - Pass: wallet address and chain (ethereum, polygon, hedera, or all) from gathered requirements
          - Wait for balance data including native tokens, ERC20 tokens, and USD values
          - Present balance information in a clear, organized format
 
