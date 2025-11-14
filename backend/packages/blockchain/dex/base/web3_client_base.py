@@ -1,5 +1,6 @@
 """Base class for Uniswap V3 Web3 clients."""
 
+import logging
 from typing import Any, Optional
 
 from web3 import Web3
@@ -39,6 +40,7 @@ class BaseUniswapV3Client:
         self.factory_address = factory_address
         self.network_name = network_name
         self._factory_contract: Optional[Contract] = None
+        self.logger = logging.getLogger(f"{self.__class__.__name__}.{network_name}")
 
     @property
     def factory_contract(self) -> Contract:
@@ -177,40 +179,82 @@ class BaseUniswapV3Client:
     ) -> Optional[PoolInfo]:
         """
         Get complete pool information including address, liquidity, and slot0.
+        Tries all fee tiers (500, 3000, 10000) until a pool is found.
 
         Args:
             token_a: Token A address
             token_b: Token B address
-            fee: Pool fee tier
+            fee: Pool fee tier (used as starting point, then tries all fees)
 
         Returns:
-            PoolInfo dictionary or None if pool doesn't exist
+            PoolInfo dictionary or None if pool doesn't exist for any fee tier
 
         Raises:
             ValueError: If pool info retrieval fails
         """
-        pool_address = self.get_pool_address(token_a, token_b, fee)
-        if not pool_address:
-            return None
+        self.logger.info(
+            f"Searching for pool: token_a={token_a}, token_b={token_b}, "
+            f"network={self.network_name}, starting_fee={fee}"
+        )
+        
+        # Create ordered list of fees to try: start with provided fee, then try others
+        fees_to_try = [fee] + [f for f in FEE_TIERS if f != fee]
+        
+        for current_fee in fees_to_try:
+            self.logger.debug(f"Trying fee tier: {current_fee} bps")
+            
+            try:
+                pool_address = self.get_pool_address(token_a, token_b, current_fee)
+                if not pool_address:
+                    self.logger.debug(f"No pool found for fee tier {current_fee} bps")
+                    continue
 
-        try:
-            liquidity = self.get_pool_liquidity(pool_address)
-            slot0 = self.get_pool_slot0(pool_address)
+                self.logger.info(
+                    f"Pool address found for fee {current_fee} bps: {pool_address}"
+                )
 
-            # Normalize addresses for token0/token1
-            token_a_norm = normalize_address(token_a).lower()
-            token_b_norm = normalize_address(token_b).lower()
+                try:
+                    liquidity = self.get_pool_liquidity(pool_address)
+                    slot0 = self.get_pool_slot0(pool_address)
 
-            return PoolInfo(
-                pool_address=pool_address,
-                token0=min(token_a_norm, token_b_norm),
-                token1=max(token_a_norm, token_b_norm),
-                fee=fee,
-                liquidity=liquidity,
-                slot0=slot0,
-            )
-        except Exception as e:
-            raise ValueError(f"Failed to get pool info: {str(e)}") from e
+                    # Normalize addresses for token0/token1
+                    token_a_norm = normalize_address(token_a).lower()
+                    token_b_norm = normalize_address(token_b).lower()
+
+                    self.logger.info(
+                        f"Successfully retrieved pool info: fee={current_fee} bps, "
+                        f"liquidity={liquidity}, tick={slot0['tick']}, "
+                        f"pool_address={pool_address}"
+                    )
+
+                    return PoolInfo(
+                        pool_address=pool_address,
+                        token0=min(token_a_norm, token_b_norm),
+                        token1=max(token_a_norm, token_b_norm),
+                        fee=current_fee,
+                        liquidity=liquidity,
+                        slot0=slot0,
+                    )
+                except Exception as e:
+                    self.logger.error(
+                        f"Error retrieving pool info for fee {current_fee} bps, "
+                        f"pool_address={pool_address}: {str(e)}",
+                        exc_info=True
+                    )
+                    # If this fee tier fails, try the next one
+                    continue
+            except Exception as e:
+                self.logger.warning(
+                    f"Error getting pool address for fee {current_fee} bps: {str(e)}"
+                )
+                continue
+        
+        # No pool found for any fee tier
+        self.logger.warning(
+            f"No pool found for any fee tier. Tried fees: {fees_to_try}. "
+            f"token_a={token_a}, token_b={token_b}, network={self.network_name}"
+        )
+        return None
 
     def get_all_fee_tier_pools(
         self,

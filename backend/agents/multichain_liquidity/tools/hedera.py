@@ -5,7 +5,9 @@ from packages.blockchain.hedera.saucerswap.pool.web3_client import (
     SaucerSwapWeb3Client,
 )
 
-HEDERA_TESTNET_RPC = os.getenv("HEDERA_TESTNET_RPC", "https://testnet.hashio.io/api")
+# Default to mainnet for now (as requested)
+HEDERA_MAINNET_RPC = os.getenv("HEDERA_MAINNET_RPC", "https://mainnet.hashio.io/api")
+HEDERA_TESTNET_RPC = os.getenv("HEDERA_TESTNET_RPC", HEDERA_MAINNET_RPC)
 
 
 def get_hedera_liquidity(token_a: str, token_b: str, fee: int = 3000) -> dict:
@@ -21,13 +23,14 @@ def get_hedera_liquidity(token_a: str, token_b: str, fee: int = 3000) -> dict:
         Dictionary with pool address, liquidity, and slot0 data
     """
     try:
-        client = SaucerSwapWeb3Client(rpc_url=HEDERA_TESTNET_RPC, network="testnet")
+        # Use mainnet by default (as requested)
+        client = SaucerSwapWeb3Client(rpc_url=HEDERA_MAINNET_RPC, network="mainnet")
         pool_info = client.get_pool_info(token_a, token_b, fee=fee)
 
         if pool_info:
             return {
                 "chain": "hedera",
-                "network": "testnet",
+                "network": "mainnet",
                 "pool_address": pool_info["pool_address"],
                 "token_a": token_a,
                 "token_b": token_b,
@@ -40,7 +43,7 @@ def get_hedera_liquidity(token_a: str, token_b: str, fee: int = 3000) -> dict:
         else:
             return {
                 "chain": "hedera",
-                "network": "testnet",
+                "network": "mainnet",
                 "pool_address": None,
                 "token_a": token_a,
                 "token_b": token_b,
@@ -51,7 +54,7 @@ def get_hedera_liquidity(token_a: str, token_b: str, fee: int = 3000) -> dict:
     except Exception as e:
         return {
             "chain": "hedera",
-            "network": "testnet",
+            "network": "mainnet",
             "token_a": token_a,
             "token_b": token_b,
             "fee": fee,

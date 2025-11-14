@@ -5,7 +5,10 @@ from packages.blockchain.polygon.uniswap.pool.web3_client import (
     UniswapWeb3Client as PolygonUniswapClient,
 )
 
-POLYGON_MAINNET_RPC = os.getenv("POLYGON_MAINNET_RPC", "https://polygon.llamarpc.com")
+POLYGON_MAINNET_RPC = os.getenv(
+    "POLYGON_MAINNET_RPC", 
+    "https://polygon-rpc.com"  # More reliable public RPC
+)
 
 
 def get_polygon_liquidity(token_a: str, token_b: str, fee: int = 3000) -> dict:
