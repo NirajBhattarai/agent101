@@ -30,6 +30,21 @@ ORCHESTRATOR_INSTRUCTION = """
        - Example queries: "Swap 0.1 HBAR to USDC on hedera for 0.0.123456", "Swap 10 USDC to ETH on ethereum for 0x1234..."
        - Returns swap configuration with transaction details
 
+    4. **Sentiment Agent** (A2A Protocol)
+       - Provides cryptocurrency sentiment analysis using Santiment API
+       - Supports sentiment balance, social volume, social dominance, trending words, and social shifts
+       - Format: "Get sentiment balance for [asset] over [days] days" or "Get social volume for [asset]"
+       - Example queries: "Get sentiment balance for Bitcoin over the last week", "How many times has Ethereum been mentioned on social media?", "What are the top 3 trending words in crypto?", "How dominant is Ethereum in social media discussions?"
+       - Returns sentiment analysis data including metrics and insights
+
+    5. **Trading Agent** (A2A Protocol)
+       - Provides intelligent buy/sell recommendations for BTC and ETH
+       - Combines technical analysis (RSI, MACD, Moving Averages), sentiment analysis, and ML predictions
+       - Format: "Should I buy or sell [BTC/ETH]?" or "Get trading recommendation for [BTC/ETH]"
+       - Example queries: "Should I buy Bitcoin?", "What's the trading recommendation for Ethereum?", "Is it a good time to sell BTC?", "Should I buy or sell ETH now?"
+       - Returns buy/sell/hold recommendation with entry price, stop loss, targets, confidence, and reasoning
+       - Only supports Bitcoin (BTC) and Ethereum (ETH)
+
     SUPPORTED CHAINS:
     - Ethereum
     - Polygon
@@ -49,9 +64,9 @@ ORCHESTRATOR_INSTRUCTION = """
     RECOMMENDED WORKFLOW FOR SWAP QUERIES:
 
     **For Swap Queries** (CRITICAL - Follow this exact sequence):
-    
+
     When a user wants to swap tokens, you MUST follow this sequence:
-    
+
     1. **STEP 1: Check Balance** - Call Balance Agent FIRST
        - Extract account address from user query (if provided)
        - Extract chain from user query (e.g., "hedera", "polygon", "ethereum")
@@ -61,7 +76,7 @@ ORCHESTRATOR_INSTRUCTION = """
        - Check if user has sufficient balance for the swap amount
        - If balance is insufficient, inform user and STOP - do not proceed to swap
        - If balance is sufficient, proceed to Step 2
-    
+
     2. **STEP 2: Get Pool/Liquidity** - Call Multi-Chain Liquidity Agent
        - Extract token pair from user query (token_in and token_out)
        - Extract chain from user query
@@ -70,31 +85,31 @@ ORCHESTRATOR_INSTRUCTION = """
        - Verify that a pool exists for the token pair on the specified chain
        - If no pool exists, inform user and STOP - do not proceed to swap
        - If pool exists, proceed to Step 3
-    
+
     3. **STEP 3: Execute Swap** - Call Swap Agent
        - Extract all swap parameters: amount, token_in, token_out, chain, account_address, slippage
        - Call Swap Agent: "Swap [amount] [token_in] to [token_out] on [chain] for [account_address]"
        - Wait for swap response
        - Present the swap transaction details to the user
-    
+
     **Example Swap Workflow**:
     User: "Swap 0.1 HBAR to USDC on hedera for 0.0.123456"
-    
+
     Step 1: Call Balance Agent
     → Query: "Get balance for 0.0.123456 on hedera"
     → Response: { "balances": [{"token_symbol": "HBAR", "balance": "1.5", ...}] }
     → Check: User has 1.5 HBAR, needs 0.1 HBAR → Sufficient balance ✓
-    
+
     Step 2: Call Multi-Chain Liquidity Agent
     → Query: "Get liquidity for HBAR/USDC on hedera"
     → Response: { "results": [{"pool_address": "0x...", "liquidity": "1000000", ...}] }
     → Check: Pool exists with liquidity ✓
-    
+
     Step 3: Call Swap Agent
     → Query: "Swap 0.1 HBAR to USDC on hedera for 0.0.123456"
     → Response: { "transaction": {...}, "status": "pending", ... }
     → Present: Swap transaction created successfully
-    
+
     **CRITICAL RULES FOR SWAP WORKFLOW**:
     - ALWAYS call Balance Agent FIRST before Swap Agent
     - ALWAYS call Multi-Chain Liquidity Agent SECOND to verify pool exists

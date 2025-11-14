@@ -10,9 +10,7 @@ export default function PaymentPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Hedera x402 Payment
-            </h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Hedera x402 Payment</h1>
             <p className="text-gray-600">
               Create, sign, verify, and settle payments using the x402 facilitator
             </p>
@@ -26,4 +24,3 @@ export default function PaymentPage() {
     </div>
   );
 }
-

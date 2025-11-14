@@ -18,8 +18,8 @@ def validate_response_content(content: str) -> str:
     # Validate JSON
     try:
         json.loads(content)
-    except json.JSONDecodeError:
-        raise ValueError(ERROR_INVALID_JSON)
+    except json.JSONDecodeError as e:
+        raise ValueError(ERROR_INVALID_JSON) from e
 
     return content
 

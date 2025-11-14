@@ -21,7 +21,7 @@ def test_networks_structure():
     assert "mainnet" in NETWORKS
     assert "sepolia" in NETWORKS
 
-    for network_name, network_config in NETWORKS.items():
+    for _network_name, network_config in NETWORKS.items():
         assert "factory" in network_config
         assert "name" in network_config
         assert "chain_id" in network_config

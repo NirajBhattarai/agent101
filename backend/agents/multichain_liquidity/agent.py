@@ -134,7 +134,7 @@ class LiquidityAgent:
                         futures.append((chain_name, loop.run_in_executor(executor, func, *args)))
 
                     results = await asyncio.gather(*[f[1] for f in futures], return_exceptions=True)
-                    for (chain_name, _), result in zip(futures, results):
+                    for (chain_name, _), result in zip(futures, results, strict=False):
                         if isinstance(result, Exception):
                             chain_results[chain_name] = {
                                 "chain": chain_name,

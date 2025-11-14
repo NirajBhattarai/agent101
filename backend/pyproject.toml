@@ -31,6 +31,10 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "google-adk>=1.18.0",
     "web3>=6.15.0",
+    "requests>=2.31.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "scikit-learn>=1.3.0",
     # ag-ui-adk: AG-UI Protocol adapter for Google ADK agents
     # Allows ADK agents to communicate with the frontend using AG-UI Protocol
     "ag-ui-adk>=0.0.1",
@@ -81,6 +85,8 @@ ignore = [
 "__init__.py" = ["F401"]
 "agents/multichain_liquidity/__main__.py" = ["E402"]
 "agents/balance/__main__.py" = ["E402"]
+"agents/sentiment/__main__.py" = ["E402"]
+"agents/trading/__main__.py" = ["E402"]
 "packages/blockchain/hedera/balance/balance_client.py" = ["E722"]
 
 [tool.mypy]

@@ -5,12 +5,10 @@ Handles validation and serialization of swap responses.
 """
 
 import json
-from typing import Any
 
 from .constants import (
-    ERROR_VALIDATION_FAILED,
     ERROR_INVALID_JSON,
-    ERROR_EMPTY_RESPONSE,
+    ERROR_VALIDATION_FAILED,
 )
 from .models.swap import StructuredSwap
 
@@ -97,4 +95,3 @@ def log_response_info(chain: str, token_in: str, token_out: str, response: str) 
     """
     print(f"✅ Swap response for {token_in} -> {token_out} on {chain}")
     print(f"📦 Response length: {len(response)} characters")
-

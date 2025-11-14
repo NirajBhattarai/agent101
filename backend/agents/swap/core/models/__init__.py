@@ -1,10 +1,10 @@
 """Swap agent models."""
 
 from .swap import (
-    SwapTransaction,
-    SwapOption,
-    SwapBalanceCheck,
     StructuredSwap,
+    SwapBalanceCheck,
+    SwapOption,
+    SwapTransaction,
 )
 
 __all__ = [
@@ -13,4 +13,3 @@ __all__ = [
     "SwapBalanceCheck",
     "StructuredSwap",
 ]
-

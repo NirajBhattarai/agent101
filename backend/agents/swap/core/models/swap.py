@@ -15,13 +15,9 @@ class SwapTransaction(BaseModel):
     """Represents a swap transaction."""
 
     chain: str = Field(description="Chain (ethereum, polygon, or hedera)")
-    token_in_symbol: str = Field(
-        description="Token symbol to swap from (e.g., HBAR, USDC)"
-    )
+    token_in_symbol: str = Field(description="Token symbol to swap from (e.g., HBAR, USDC)")
     token_in_address: str = Field(description="Token address to swap from")
-    token_out_symbol: str = Field(
-        description="Token symbol to swap to (e.g., USDC, HBAR)"
-    )
+    token_out_symbol: str = Field(description="Token symbol to swap to (e.g., USDC, HBAR)")
     token_out_address: str = Field(description="Token address to swap to")
     amount_in: str = Field(description="Amount to swap in human-readable format")
     amount_out: str = Field(description="Amount out in human-readable format")
@@ -36,9 +32,7 @@ class SwapTransaction(BaseModel):
         default=None, description="Transaction hash if swap is initiated"
     )
     status: str = Field(description="Swap status: pending, completed, failed")
-    price_impact: Optional[str] = Field(
-        default=None, description="Price impact percentage"
-    )
+    price_impact: Optional[str] = Field(default=None, description="Price impact percentage")
 
 
 class SwapOption(BaseModel):
@@ -97,4 +91,3 @@ class StructuredSwap(BaseModel):
         description="Whether the amount exceeds the confirmation threshold",
     )
     error: Optional[str] = Field(default=None, description="Error message if any")
-

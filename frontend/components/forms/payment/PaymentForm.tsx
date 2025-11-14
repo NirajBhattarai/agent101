@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 import {
   AccountId,
   Client,
+  PrivateKey,
   TransferTransaction,
   TransactionId,
   Hbar,
@@ -19,6 +20,19 @@ import {
   SettleResponse,
   serializeTransaction,
 } from "@/lib/shared/blockchain/hedera/facilitator";
+import { PrivateKeyImport } from "./PrivateKeyImport";
+import {
+  getEncryptedKey,
+  clearStoredKey,
+  getCachedPassword,
+  cachePassword,
+  clearPasswordCache,
+  updateLastActivity,
+  hasCachedPassword,
+  getPasswordCacheTimeRemaining,
+  isUserIdle,
+} from "@/lib/shared/crypto/keyStorage";
+import { decryptPrivateKey } from "@/lib/shared/crypto/encryption";
 
 interface PaymentFormProps {
   facilitatorAccountId?: string;
@@ -48,6 +62,59 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<"form" | "verify" | "settle">("form");
+  const [keyPassword, setKeyPassword] = useState("");
+  const [keyImported, setKeyImported] = useState(false);
+  const [decryptedPrivateKey, setDecryptedPrivateKey] = useState<string | null>(null);
+  const [showPasswordInput, setShowPasswordInput] = useState(true);
+
+  // Check for cached password and update activity on mount
+  useEffect(() => {
+    updateLastActivity();
+    const cached = getCachedPassword();
+    if (cached) {
+      setKeyPassword(cached);
+      setShowPasswordInput(false);
+    }
+  }, []);
+
+  // Track user activity to detect idle
+  useEffect(() => {
+    const activityEvents = ["mousedown", "mousemove", "keypress", "scroll", "touchstart", "click"];
+    let activityTimer: NodeJS.Timeout;
+
+    const handleActivity = () => {
+      updateLastActivity();
+      // Clear any existing timer
+      if (activityTimer) {
+        clearTimeout(activityTimer);
+      }
+      // Check if user became idle after 5 minutes
+      activityTimer = setTimeout(
+        () => {
+          if (isUserIdle()) {
+            clearPasswordCache();
+            setKeyPassword("");
+            setShowPasswordInput(true);
+          }
+        },
+        5 * 60 * 1000,
+      ); // 5 minutes
+    };
+
+    // Add event listeners
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, handleActivity, true);
+    });
+
+    return () => {
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, handleActivity, true);
+      });
+      if (activityTimer) {
+        clearTimeout(activityTimer);
+      }
+    };
+  }, []);
 
   // Fetch facilitator account ID when network changes
   useEffect(() => {
@@ -68,9 +135,18 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
       .catch((err) => console.error("Failed to fetch facilitator info:", err));
   }, [network, payTo]);
 
+  // Check if private key is already imported
+  useEffect(() => {
+    const stored = getEncryptedKey();
+    if (stored) {
+      setKeyImported(true);
+      setPayerAccountId(stored.accountId);
+    }
+  }, []);
+
   // Auto-fill payer account ID from connected wallet (only if not already set)
   useEffect(() => {
-    if (address && !payerAccountId) {
+    if (address && !payerAccountId && !keyImported) {
       // If payerAccountId is empty, try to use wallet address
       // Note: EVM addresses need to be converted to Hedera account IDs
       // For now, if the address is already a Hedera account ID format, use it
@@ -81,7 +157,12 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
       }
       // If it's an EVM address (0x...), user needs to enter their Hedera account ID manually
     }
-  }, [address, payerAccountId]);
+  }, [address, payerAccountId, keyImported]);
+
+  const handleKeyImported = (accountId: string) => {
+    setKeyImported(true);
+    setPayerAccountId(accountId);
+  };
 
   // Helper function to create Hedera client
   const createClient = (network: string): Client => {
@@ -103,7 +184,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
     client: Client,
   ): TransferTransaction => {
     const transactionId = TransactionId.generate(facilitatorAccount);
-    
+
     const transaction = new TransferTransaction()
       .setTransactionId(transactionId)
       .addHbarTransfer(fromAccount, Hbar.fromTinybars(-parseInt(amount)))
@@ -122,7 +203,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
     client: Client,
   ): TransferTransaction => {
     const transactionId = TransactionId.generate(facilitatorAccount);
-    
+
     const transaction = new TransferTransaction()
       .setTransactionId(transactionId)
       .addTokenTransfer(tokenId, fromAccount, -parseInt(amount))
@@ -132,19 +213,52 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
   };
 
   const createPaymentPayload = async () => {
-    if (!isConnected) {
-      open?.();
-      setError("Please connect your wallet first");
-      return;
+    // Check if using private key or wallet
+    const storedKey = getEncryptedKey();
+    let privateKeyToUse: string | null = null;
+
+    if (storedKey) {
+      // Using private key - need password to decrypt
+      // First try cached password
+      let passwordToUse = keyPassword || getCachedPassword();
+
+      if (!passwordToUse) {
+        setError("Please enter your password to decrypt the private key");
+        setShowPasswordInput(true);
+        return;
+      }
+
+      try {
+        privateKeyToUse = await decryptPrivateKey(storedKey.encryptedKey, passwordToUse);
+        setDecryptedPrivateKey(privateKeyToUse);
+        // Cache the password for 15 minutes
+        cachePassword(passwordToUse);
+        updateLastActivity();
+        setShowPasswordInput(false);
+      } catch (err: any) {
+        // If cached password failed, clear it and ask user
+        clearPasswordCache();
+        setError("Failed to decrypt private key. Please check your password.");
+        setShowPasswordInput(true);
+        setKeyPassword("");
+        return;
+      }
+    } else {
+      // Using wallet - need wallet connection
+      if (!isConnected) {
+        open?.();
+        setError("Please connect your wallet or import a private key");
+        return;
+      }
+
+      if (!walletClient) {
+        setError("Wallet not connected. Please connect your wallet.");
+        return;
+      }
     }
 
     if (!payerAccountId || !payTo || !amount || !feePayer) {
       setError("Please fill in all required fields");
-      return;
-    }
-
-    if (!walletClient) {
-      setError("Wallet not connected. Please connect your wallet.");
       return;
     }
 
@@ -201,9 +315,23 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
       const transactionId = transaction.transactionId!.toString();
       console.log("✅ Transaction created. Transaction ID:", transactionId);
 
-      // Step 2: Create authorization message and sign with wallet
-      console.log("📝 Step 2: Signing authorization message with wallet...");
-      const authorizationMessage = `Hedera x402 Payment Authorization
+      // Step 2: Sign transaction with private key or wallet
+      let signedTransactionBytes: string;
+      let walletSignature: string | undefined;
+      let walletAddress: string | undefined;
+      let signedMessage: string | undefined;
+
+      if (privateKeyToUse) {
+        // Sign with private key
+        console.log("📝 Step 2: Signing transaction with private key...");
+        const hederaPrivateKey = PrivateKey.fromStringECDSA(privateKeyToUse);
+        const signedTransaction = await transaction.sign(hederaPrivateKey);
+        signedTransactionBytes = Buffer.from(signedTransaction.toBytes()).toString("base64");
+        console.log("✅ Transaction signed with private key");
+      } else {
+        // Sign with wallet (original flow)
+        console.log("📝 Step 2: Signing authorization message with wallet...");
+        const authorizationMessage = `Hedera x402 Payment Authorization
 
 Network: ${network}
 Payer Account: ${payerAccountId}
@@ -215,32 +343,43 @@ Description: ${description}
 
 By signing this message, you authorize this payment transaction.`;
 
-      const provider = new ethers.BrowserProvider(walletClient as any);
-      const signer = await provider.getSigner();
-      const walletSignature = await signer.signMessage(authorizationMessage);
-      console.log("✅ Authorization message signed:", walletSignature.substring(0, 20) + "...");
+        const provider = new ethers.BrowserProvider(walletClient as any);
+        const signer = await provider.getSigner();
+        walletSignature = await signer.signMessage(authorizationMessage);
+        walletAddress = address || "";
+        signedMessage = authorizationMessage;
+        console.log("✅ Authorization message signed:", walletSignature.substring(0, 20) + "...");
 
-      // Step 3: Serialize unsigned transaction
-      const transactionBytes = Buffer.from(transaction.toBytes()).toString("base64");
+        // Serialize unsigned transaction for wallet flow
+        signedTransactionBytes = Buffer.from(transaction.toBytes()).toString("base64");
+      }
 
-      // Step 4: Create payment payload (unsigned - facilitator will sign it)
+      // Step 3: Create payment payload
       const paymentPayload: PaymentPayload = {
         x402Version: 1,
         scheme: "exact",
         network: network,
         payload: {
-          transaction: transactionBytes, // Unsigned transaction
+          transaction: signedTransactionBytes,
         },
       };
 
       console.log("✅ Payment payload created");
+
+      // Add wallet signature if using wallet flow
+      if (walletSignature) {
+        (paymentPayload as any).walletSignature = walletSignature;
+        (paymentPayload as any).walletAddress = walletAddress;
+        (paymentPayload as any).signedMessage = signedMessage;
+      }
+
+      // If using private key, include it in the payload for direct signing
+      if (privateKeyToUse) {
+        (paymentPayload as any).payerPrivateKey = privateKeyToUse;
+      }
+
       setPaymentPayload(paymentPayload);
-      
-      // Store wallet signature for verify endpoint
-      (paymentPayload as any).walletSignature = walletSignature;
-      (paymentPayload as any).walletAddress = address;
-      (paymentPayload as any).signedMessage = authorizationMessage;
-      
+
       setStep("verify");
     } catch (err: any) {
       setError(err.message || "Failed to create payment payload");
@@ -293,7 +432,7 @@ By signing this message, you authorize this payment transaction.`;
 
       const data = await response.json();
       setVerifyResponse(data);
-      
+
       if (data.isValid) {
         setStep("settle");
       } else {
@@ -374,6 +513,55 @@ By signing this message, you authorize this payment transaction.`;
 
       {step === "form" && (
         <div className="space-y-4">
+          {/* Private Key Import Section */}
+          <PrivateKeyImport onKeyImported={handleKeyImported} network={network} />
+
+          {/* Password input if key is imported and not cached */}
+          {keyImported && showPasswordInput && (
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Password to Decrypt Private Key
+              </label>
+              <input
+                type="password"
+                value={keyPassword}
+                onChange={(e) => setKeyPassword(e.target.value)}
+                placeholder="Enter password to decrypt your private key"
+                className="w-full p-2 border rounded-lg"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Your private key is encrypted. Enter your password to decrypt it when signing
+                transactions.
+                {hasCachedPassword() && (
+                  <span className="text-green-600 ml-1">
+                    (Password cached for {Math.floor(getPasswordCacheTimeRemaining() / 60)} more
+                    minutes)
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
+
+          {/* Show cached password status */}
+          {keyImported && !showPasswordInput && hasCachedPassword() && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-800">
+                ✅ Password cached. You won't need to enter it again for{" "}
+                {Math.floor(getPasswordCacheTimeRemaining() / 60)} more minutes.
+              </p>
+              <button
+                onClick={() => {
+                  clearPasswordCache();
+                  setKeyPassword("");
+                  setShowPasswordInput(true);
+                }}
+                className="text-xs text-blue-600 underline mt-1"
+              >
+                Clear password cache
+              </button>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium mb-1">Network</label>
             <select
@@ -409,9 +597,7 @@ By signing this message, you authorize this payment transaction.`;
               placeholder="50000000 (0.5 HBAR)"
               className="w-full p-2 border rounded-lg"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              For HBAR: 1 HBAR = 100,000,000 tinybars
-            </p>
+            <p className="text-xs text-gray-500 mt-1">For HBAR: 1 HBAR = 100,000,000 tinybars</p>
           </div>
 
           <div>
@@ -423,13 +609,13 @@ By signing this message, you authorize this payment transaction.`;
               placeholder="0.0.123456"
               className="w-full p-2 border rounded-lg"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Account that will receive the payment
-            </p>
+            <p className="text-xs text-gray-500 mt-1">Account that will receive the payment</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Fee Payer (Facilitator Account ID)</label>
+            <label className="block text-sm font-medium mb-1">
+              Fee Payer (Facilitator Account ID)
+            </label>
             <input
               type="text"
               value={feePayer}
@@ -453,28 +639,38 @@ By signing this message, you authorize this payment transaction.`;
               className="w-full p-2 border rounded-lg"
             />
             <p className="text-xs text-gray-500 mt-1">
-              {address && address.match(/^\d+\.\d+\.\d+$/) 
-                ? `Auto-filled from connected wallet: ${address}` 
-                : address 
+              {address && address.match(/^\d+\.\d+\.\d+$/)
+                ? `Auto-filled from connected wallet: ${address}`
+                : address
                   ? `Connected wallet: ${address}. Enter your Hedera account ID (0.0.xxxxx format).`
                   : "Enter your Hedera account ID (0.0.xxxxx format) or connect wallet"}
             </p>
           </div>
 
-          {!isConnected && (
+          {!keyImported && !isConnected && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
-                ⚠️ Connect your wallet (MetaMask) to auto-fill your account address. 
-                The wallet button is in the top right corner.
+                ⚠️ Import a private key above or connect your wallet (MetaMask) to proceed. The
+                wallet button is in the top right corner.
               </p>
             </div>
           )}
 
-          {isConnected && (
+          {keyImported && (
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-sm text-green-800">
-                ✅ <strong>Wallet Signing:</strong> Your crypto wallet will sign an authorization message for this payment. 
-                No private key needed - everything is signed securely through your connected wallet!
+                ✅ <strong>Private Key Signing:</strong> Your private key is encrypted and stored
+                securely. Transactions will be signed directly with your private key.
+              </p>
+            </div>
+          )}
+
+          {!keyImported && isConnected && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                ✅ <strong>Wallet Signing:</strong> Your crypto wallet will sign an authorization
+                message for this payment. No private key needed - everything is signed securely
+                through your connected wallet!
               </p>
             </div>
           )}
@@ -513,9 +709,7 @@ By signing this message, you authorize this payment transaction.`;
         <div className="space-y-4">
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
             <h3 className="font-semibold text-green-800 mb-2">✅ Payment Payload Created</h3>
-            <p className="text-sm text-green-700">
-              Transaction signed and ready for verification.
-            </p>
+            <p className="text-sm text-green-700">Transaction signed and ready for verification.</p>
           </div>
 
           <button
@@ -527,17 +721,15 @@ By signing this message, you authorize this payment transaction.`;
           </button>
 
           {verifyResponse && (
-            <div className={`p-4 rounded-lg border ${
-              verifyResponse.isValid 
-                ? "bg-green-50 border-green-200" 
-                : "bg-red-50 border-red-200"
-            }`}>
+            <div
+              className={`p-4 rounded-lg border ${
+                verifyResponse.isValid ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+              }`}
+            >
               <h3 className="font-semibold mb-2">
                 {verifyResponse.isValid ? "✅ Verification Successful" : "❌ Verification Failed"}
               </h3>
-              <pre className="text-xs overflow-auto">
-                {JSON.stringify(verifyResponse, null, 2)}
-              </pre>
+              <pre className="text-xs overflow-auto">{JSON.stringify(verifyResponse, null, 2)}</pre>
             </div>
           )}
 
@@ -554,9 +746,7 @@ By signing this message, you authorize this payment transaction.`;
         <div className="space-y-4">
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="font-semibold text-blue-800 mb-2">✅ Payment Verified</h3>
-            <p className="text-sm text-blue-700">
-              Payment is valid. Ready to settle.
-            </p>
+            <p className="text-sm text-blue-700">Payment is valid. Ready to settle.</p>
           </div>
 
           <button
@@ -568,22 +758,23 @@ By signing this message, you authorize this payment transaction.`;
           </button>
 
           {settleResponse && (
-            <div className={`p-4 rounded-lg border ${
-              settleResponse.success 
-                ? "bg-green-50 border-green-200" 
-                : "bg-red-50 border-red-200"
-            }`}>
+            <div
+              className={`p-4 rounded-lg border ${
+                settleResponse.success ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+              }`}
+            >
               <h3 className="font-semibold mb-2">
                 {settleResponse.success ? "✅ Payment Settled" : "❌ Settlement Failed"}
               </h3>
               {settleResponse.success && (
                 <p className="text-sm mb-2">
-                  Transaction ID: <code className="bg-gray-100 px-2 py-1 rounded">{settleResponse.transaction}</code>
+                  Transaction ID:{" "}
+                  <code className="bg-gray-100 px-2 py-1 rounded">
+                    {settleResponse.transaction}
+                  </code>
                 </p>
               )}
-              <pre className="text-xs overflow-auto">
-                {JSON.stringify(settleResponse, null, 2)}
-              </pre>
+              <pre className="text-xs overflow-auto">{JSON.stringify(settleResponse, null, 2)}</pre>
             </div>
           )}
 
@@ -598,4 +789,3 @@ By signing this message, you authorize this payment transaction.`;
     </div>
   );
 };
-

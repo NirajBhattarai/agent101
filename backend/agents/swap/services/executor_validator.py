@@ -5,13 +5,12 @@ Validates responses at the executor level before sending to frontend.
 """
 
 import json
-from typing import Optional
 
 from ..core.constants import (
+    CHAIN_UNKNOWN,
     ERROR_EMPTY_RESPONSE,
     ERROR_INVALID_JSON,
     RESPONSE_TYPE,
-    CHAIN_UNKNOWN,
 )
 
 
@@ -36,7 +35,9 @@ def validate_response_content(content: str) -> str:
         if not isinstance(parsed, dict):
             raise ValueError("Response must be a JSON object")
         if parsed.get("type") != RESPONSE_TYPE:
-            print(f"⚠️ Warning: Response type mismatch. Expected {RESPONSE_TYPE}, got {parsed.get('type')}")
+            print(
+                f"⚠️ Warning: Response type mismatch. Expected {RESPONSE_TYPE}, got {parsed.get('type')}"
+            )
     except json.JSONDecodeError as e:
         raise ValueError(f"{ERROR_INVALID_JSON}: {str(e)}") from e
 
@@ -81,4 +82,3 @@ def build_execution_error_response(error: Exception) -> str:
         },
         indent=2,
     )
-

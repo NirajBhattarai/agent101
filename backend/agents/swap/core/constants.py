@@ -16,8 +16,7 @@ DEFAULT_SESSION_ID = "default_session"
 # Agent configuration
 AGENT_NAME = "swap_agent"
 AGENT_DESCRIPTION = (
-    "An agent that handles token swaps on blockchain chains including "
-    "Ethereum, Polygon, and Hedera"
+    "An agent that handles token swaps on blockchain chains including Ethereum, Polygon, and Hedera"
 )
 RESPONSE_TYPE = "swap"
 
@@ -36,4 +35,3 @@ ERROR_CANCEL_NOT_SUPPORTED = "cancel not supported"
 ERROR_CHAIN_NOT_SPECIFIED = "Chain not specified in query"
 ERROR_TOKEN_IN_NOT_FOUND = "Could not determine which token to swap from"
 ERROR_TOKEN_OUT_NOT_FOUND = "Could not determine which token to swap to"
-

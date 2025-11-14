@@ -68,16 +68,38 @@ def extract_token_symbols(query: str) -> tuple[Optional[str], Optional[str]]:
         r"([A-Z0-9]{2,10})[/\-]([A-Z0-9]{2,10})",  # MATIC/USDC or MATIC-USDC
         r"([A-Z0-9]{2,10})\s+([A-Z0-9]{2,10})",  # MATIC USDC
     ]
-    
+
     for pattern in pair_patterns:
         match = re.search(pattern, query_upper)
         if match:
             token1, token2 = match.groups()
             # Basic validation - check they're not excluded words
             excluded_words = {
-                "FOR", "AND", "THE", "GET", "FIND", "SHOW", "LIQUIDITY", "POOL", "PAIR",
-                "CHAIN", "ETHEREUM", "POLYGON", "HEDERA", "ALL", "MAINNET", "TESTNET",
-                "FEE", "TIER", "BPS", "WITH", "ON", "OF", "TO", "FROM", "NETWORK",
+                "FOR",
+                "AND",
+                "THE",
+                "GET",
+                "FIND",
+                "SHOW",
+                "LIQUIDITY",
+                "POOL",
+                "PAIR",
+                "CHAIN",
+                "ETHEREUM",
+                "POLYGON",
+                "HEDERA",
+                "ALL",
+                "MAINNET",
+                "TESTNET",
+                "FEE",
+                "TIER",
+                "BPS",
+                "WITH",
+                "ON",
+                "OF",
+                "TO",
+                "FROM",
+                "NETWORK",
             }
             if token1 not in excluded_words and token2 not in excluded_words:
                 return token1, token2

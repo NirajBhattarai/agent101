@@ -34,4 +34,3 @@ def get_swap_ethereum(
         account_address=account_address,
         slippage_tolerance=slippage_tolerance,
     )
-

@@ -96,6 +96,28 @@ export function getAgentStyle(agentName: string): AgentStyle {
     };
   }
 
+  // Sentiment Agent - Pink/Rose branding
+  if (nameLower.includes("sentiment")) {
+    return {
+      bgColor: "bg-gradient-to-r from-pink-100 to-rose-100",
+      textColor: "text-pink-800",
+      borderColor: "border-pink-400",
+      icon: "📈",
+      framework: "A2A",
+    };
+  }
+
+  // Trading Agent - Amber/Yellow branding
+  if (nameLower.includes("trading")) {
+    return {
+      bgColor: "bg-gradient-to-r from-amber-100 to-yellow-100",
+      textColor: "text-amber-800",
+      borderColor: "border-amber-400",
+      icon: "💹",
+      framework: "A2A",
+    };
+  }
+
   // Default/Unknown agent
   return {
     bgColor: "bg-gray-100",

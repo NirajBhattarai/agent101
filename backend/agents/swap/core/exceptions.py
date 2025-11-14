@@ -28,4 +28,3 @@ class SwapExecutionError(SwapAgentError):
     """Raised when swap execution fails."""
 
     pass
-

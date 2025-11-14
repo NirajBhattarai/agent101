@@ -13,7 +13,7 @@ def test_hedera_tokens_structure():
     assert len(HEDERA_TOKENS) > 0
 
     # Test that each token has required fields
-    for symbol, token in HEDERA_TOKENS.items():
+    for _symbol, token in HEDERA_TOKENS.items():
         assert "address" in token
         assert "decimals" in token
         assert "tokenid" in token

@@ -136,6 +136,30 @@ export default function LandingPage() {
             </p>
           </div>
 
+          {/* Sentiment Agent */}
+          <div className="group relative p-6 bg-white/60 backdrop-blur-md rounded-2xl border-2 border-white/80 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mb-4 shadow-lg shadow-pink-500/30">
+              <span className="text-2xl">📈</span>
+            </div>
+            <h3 className="text-xl font-semibold text-[#010507] mb-2">Sentiment Agent</h3>
+            <p className="text-sm text-[#57575B] leading-relaxed">
+              Analyze cryptocurrency sentiment, social volume, and trending words using Santiment
+              API.
+            </p>
+          </div>
+
+          {/* Trading Agent */}
+          <div className="group relative p-6 bg-white/60 backdrop-blur-md rounded-2xl border-2 border-white/80 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/30">
+              <span className="text-2xl">💹</span>
+            </div>
+            <h3 className="text-xl font-semibold text-[#010507] mb-2">Trading Agent</h3>
+            <p className="text-sm text-[#57575B] leading-relaxed">
+              Get intelligent buy/sell recommendations for BTC and ETH using ML predictions and
+              technical analysis.
+            </p>
+          </div>
+
           {/* Parallel Liquidity Agent */}
           <div className="group relative p-6 bg-white/60 backdrop-blur-md rounded-2xl border-2 border-white/80 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30">

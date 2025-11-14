@@ -170,7 +170,7 @@ const ChatInner = ({
                   all_pairs: parsed.all_pairs?.length || 0,
                 });
                 onLiquidityUpdate?.(parsed as MultiChainLiquidityData);
-                
+
                 // Trigger payment settlement after receiving liquidity data
                 if (typeof (window as any).__liquidityPaymentSettle === "function") {
                   console.log("💰 Triggering payment settlement after liquidity response...");

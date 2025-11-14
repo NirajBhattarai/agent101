@@ -5,7 +5,7 @@ Handles swap configuration and preparation for Hedera chain using SaucerSwap DEX
 """
 
 import os
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from packages.blockchain.hedera.constants import HEDERA_TOKENS
 
@@ -17,9 +17,7 @@ SAUCERSWAP_DEX_CONFIG = {
 }
 
 # RPC URL for Hedera
-HEDERA_MAINNET_RPC = os.getenv(
-    "HEDERA_MAINNET_RPC", "https://mainnet-public.mirrornode.hedera.com"
-)
+HEDERA_MAINNET_RPC = os.getenv("HEDERA_MAINNET_RPC", "https://mainnet-public.mirrornode.hedera.com")
 
 
 def get_token_address_hedera(token_symbol: str, use_evm: bool = False) -> Optional[str]:
@@ -136,4 +134,3 @@ def get_swap_hedera(
         "swap_fee_percent": dex_config.get("default_fee_percent", 0.3),
         "rpc_url": HEDERA_MAINNET_RPC,
     }
-

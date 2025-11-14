@@ -4,9 +4,6 @@ Swap Agent Definition
 Defines the SwapAgent class that handles swap queries using direct tool calls.
 """
 
-from .core.constants import (
-    ERROR_VALIDATION_FAILED,
-)
 from .core.response_validator import (
     build_error_response,
     log_response_info,
@@ -69,8 +66,4 @@ class SwapAgent:
 
             traceback.print_exc()
             parsed = parse_swap_query(query)
-            error_msg = f"{ERROR_VALIDATION_FAILED}: {str(e)}"
-            return build_error_response(
-                "execution_error", parsed.get("chain"), None, None
-            )
-
+            return build_error_response("execution_error", parsed.get("chain"), None, None)

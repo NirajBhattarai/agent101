@@ -5,7 +5,7 @@ Handles swap configuration and preparation for Polygon chain using Uniswap V3.
 """
 
 import os
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from packages.blockchain.polygon.constants import POLYGON_TOKENS
 
@@ -17,9 +17,7 @@ UNISWAP_POLYGON_DEX_CONFIG = {
 }
 
 # RPC URL for Polygon
-POLYGON_MAINNET_RPC = os.getenv(
-    "POLYGON_MAINNET_RPC", "https://polygon-rpc.com"
-)
+POLYGON_MAINNET_RPC = os.getenv("POLYGON_MAINNET_RPC", "https://polygon-rpc.com")
 
 
 def get_token_address_polygon(token_symbol: str) -> Optional[str]:
@@ -123,4 +121,3 @@ def get_swap_polygon(
         "swap_fee_percent": dex_config.get("default_fee_percent", 0.3),
         "rpc_url": POLYGON_MAINNET_RPC,
     }
-

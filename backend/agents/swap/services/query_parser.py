@@ -8,14 +8,14 @@ import re
 from typing import Optional, Tuple
 
 from ..core.constants import (
-    DEFAULT_CHAIN,
-    DEFAULT_TOKEN_IN,
-    DEFAULT_TOKEN_OUT,
-    DEFAULT_AMOUNT,
-    DEFAULT_SLIPPAGE,
+    CHAIN_ETHEREUM,
     CHAIN_HEDERA,
     CHAIN_POLYGON,
-    CHAIN_ETHEREUM,
+    DEFAULT_AMOUNT,
+    DEFAULT_CHAIN,
+    DEFAULT_SLIPPAGE,
+    DEFAULT_TOKEN_IN,
+    DEFAULT_TOKEN_OUT,
 )
 
 
@@ -44,9 +44,9 @@ def extract_chain(query: str) -> Tuple[str, bool]:
 
 def _get_all_token_symbols(chain: str) -> list:
     """Get all available token symbols for a chain."""
+    from packages.blockchain.ethereum.constants import ETHEREUM_TOKENS
     from packages.blockchain.hedera.constants import HEDERA_TOKENS
     from packages.blockchain.polygon.constants import POLYGON_TOKENS
-    from packages.blockchain.ethereum.constants import ETHEREUM_TOKENS
 
     if chain == CHAIN_HEDERA:
         return list(HEDERA_TOKENS.keys())
@@ -76,9 +76,7 @@ def _get_all_token_symbols(chain: str) -> list:
     return common_tokens
 
 
-def _match_token_patterns(
-    query_lower: str, all_tokens: list
-) -> Optional[Tuple[str, str]]:
+def _match_token_patterns(query_lower: str, all_tokens: list) -> Optional[Tuple[str, str]]:
     """Match token swap patterns. Returns (token_in, token_out) or None."""
     patterns = [
         r"swap\s+(\d+\.?\d*)\s+([A-Za-z]+)\s+to\s+([A-Za-z]+)",
@@ -107,9 +105,9 @@ def _find_tokens_by_position(
     query_lower: str, all_tokens: list, chain: str
 ) -> Tuple[Optional[str], Optional[str]]:
     """Find tokens by their position in query."""
+    from packages.blockchain.ethereum.constants import ETHEREUM_TOKENS
     from packages.blockchain.hedera.constants import HEDERA_TOKENS
     from packages.blockchain.polygon.constants import POLYGON_TOKENS
-    from packages.blockchain.ethereum.constants import ETHEREUM_TOKENS
 
     found_tokens = []
     token_positions = {}
@@ -130,9 +128,7 @@ def _find_tokens_by_position(
                 token_positions[token] = query_lower.find(token_lower)
 
     if token_positions:
-        found_tokens = sorted(
-            found_tokens, key=lambda t: token_positions.get(t, 999999)
-        )
+        found_tokens = sorted(found_tokens, key=lambda t: token_positions.get(t, 999999))
 
     if len(found_tokens) >= 2:
         return found_tokens[0], found_tokens[1]
@@ -152,9 +148,9 @@ def extract_token_symbols(
     if matched:
         token_in, token_out = matched
         if chain_specified:
+            from packages.blockchain.ethereum.constants import ETHEREUM_TOKENS
             from packages.blockchain.hedera.constants import HEDERA_TOKENS
             from packages.blockchain.polygon.constants import POLYGON_TOKENS
-            from packages.blockchain.ethereum.constants import ETHEREUM_TOKENS
 
             chain_tokens = {}
             if chain == CHAIN_HEDERA:
@@ -167,9 +163,7 @@ def extract_token_symbols(
             if token_in in chain_tokens and token_out in chain_tokens:
                 return token_in, token_out
         return token_in, token_out
-    return _find_tokens_by_position(
-        query_lower, all_tokens, chain if chain_specified else None
-    )
+    return _find_tokens_by_position(query_lower, all_tokens, chain if chain_specified else None)
 
 
 def extract_amount(query: str) -> str:
@@ -187,7 +181,9 @@ def extract_slippage(query: str) -> float:
 def parse_swap_query(query: str) -> dict:
     """Parse swap query and extract all parameters."""
     if not query or not query.strip():
-        query = f"Swap {DEFAULT_AMOUNT} {DEFAULT_TOKEN_IN} to {DEFAULT_TOKEN_OUT} on {DEFAULT_CHAIN}"
+        query = (
+            f"Swap {DEFAULT_AMOUNT} {DEFAULT_TOKEN_IN} to {DEFAULT_TOKEN_OUT} on {DEFAULT_CHAIN}"
+        )
     account_address = extract_account_address(query)
     chain, chain_specified = extract_chain(query)
     token_in, token_out = extract_token_symbols(query, chain, chain_specified)
@@ -202,4 +198,3 @@ def parse_swap_query(query: str) -> dict:
         "account_address": account_address,
         "slippage_tolerance": slippage,
     }
-

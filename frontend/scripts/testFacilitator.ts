@@ -2,15 +2,15 @@
 
 /**
  * Test script for Hedera x402 Facilitator
- * 
+ *
  * This script tests the facilitator endpoints by:
  * 1. Creating a payment transaction (HBAR or token)
  * 2. Verifying the payment via /api/facilitator/verify
  * 3. Settling the payment via /api/facilitator/settle
- * 
+ *
  * Usage:
  *   cd frontend && tsx scripts/testFacilitator.ts
- * 
+ *
  * Environment Variables:
  *   HEDERA_ACCOUNT_ID - Your Hedera account ID (payer)
  *   HEDERA_PRIVATE_KEY - Your Hedera private key (payer)
@@ -109,7 +109,7 @@ function createHbarTransferTransaction(
   client: Client,
 ): TransferTransaction {
   const transactionId = TransactionId.generate(facilitatorAccount);
-  
+
   const transaction = new TransferTransaction()
     .setTransactionId(transactionId)
     .addHbarTransfer(fromAccount, Hbar.fromTinybars(-parseInt(amount)))
@@ -130,7 +130,7 @@ function createTokenTransferTransaction(
   client: Client,
 ): TransferTransaction {
   const transactionId = TransactionId.generate(facilitatorAccount);
-  
+
   const transaction = new TransferTransaction()
     .setTransactionId(transactionId)
     .addTokenTransfer(tokenId, fromAccount, -parseInt(amount))
@@ -192,7 +192,7 @@ async function createPaymentPayload(
  */
 async function testSupported(): Promise<void> {
   console.log("\n📋 Testing GET /api/facilitator/supported...");
-  
+
   try {
     const response = await fetch(`${FACILITATOR_URL}/api/facilitator/supported`);
     const data = await response.json();
@@ -212,9 +212,12 @@ async function testSupported(): Promise<void> {
 /**
  * Tests the facilitator /verify endpoint
  */
-async function testVerify(paymentPayload: PaymentPayload, paymentRequirements: PaymentRequirements): Promise<boolean> {
+async function testVerify(
+  paymentPayload: PaymentPayload,
+  paymentRequirements: PaymentRequirements,
+): Promise<boolean> {
   console.log("\n🔍 Testing POST /api/facilitator/verify...");
-  
+
   try {
     const response = await fetch(`${FACILITATOR_URL}/api/facilitator/verify`, {
       method: "POST",
@@ -246,9 +249,12 @@ async function testVerify(paymentPayload: PaymentPayload, paymentRequirements: P
 /**
  * Tests the facilitator /settle endpoint
  */
-async function testSettle(paymentPayload: PaymentPayload, paymentRequirements: PaymentRequirements): Promise<void> {
+async function testSettle(
+  paymentPayload: PaymentPayload,
+  paymentRequirements: PaymentRequirements,
+): Promise<void> {
   console.log("\n💰 Testing POST /api/facilitator/settle...");
-  
+
   try {
     const response = await fetch(`${FACILITATOR_URL}/api/facilitator/settle`, {
       method: "POST",
@@ -368,4 +374,3 @@ main().catch((error) => {
   console.error("Fatal error:", error);
   process.exit(1);
 });
-

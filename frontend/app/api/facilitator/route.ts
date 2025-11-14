@@ -16,8 +16,11 @@ export async function GET(request: NextRequest) {
 
   if (!HEDERA_ACCOUNT_ID || !HEDERA_PRIVATE_KEY) {
     return NextResponse.json(
-      { error: "Facilitator not configured. Missing HEDERA_FACILITATOR_ACCOUNT_ID or HEDERA_FACILITATOR_PRIVATE_KEY" },
-      { status: 500 }
+      {
+        error:
+          "Facilitator not configured. Missing HEDERA_FACILITATOR_ACCOUNT_ID or HEDERA_FACILITATOR_PRIVATE_KEY",
+      },
+      { status: 500 },
     );
   }
 
@@ -49,7 +52,7 @@ export async function GET(request: NextRequest) {
     console.error("Error in GET /api/facilitator/supported:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -85,7 +88,7 @@ async function handleVerify(request: NextRequest) {
     if (!paymentPayload || !paymentRequirements) {
       return NextResponse.json(
         { error: "Missing paymentPayload or paymentRequirements" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -93,19 +96,13 @@ async function handleVerify(request: NextRequest) {
     const HEDERA_PRIVATE_KEY = process.env.HEDERA_FACILITATOR_PRIVATE_KEY;
 
     if (!HEDERA_ACCOUNT_ID || !HEDERA_PRIVATE_KEY) {
-      return NextResponse.json(
-        { error: "Facilitator not configured" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Facilitator not configured" }, { status: 500 });
     }
 
     // Determine network from payment requirements
     const network = paymentRequirements.network;
     if (!["hedera-testnet", "hedera-mainnet"].includes(network)) {
-      return NextResponse.json(
-        { error: "Invalid network" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid network" }, { status: 400 });
     }
 
     // Create signer for the network
@@ -119,7 +116,7 @@ async function handleVerify(request: NextRequest) {
     console.error("Error in POST /api/facilitator/verify:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -138,7 +135,7 @@ async function handleSettle(request: NextRequest) {
     if (!paymentPayload || !paymentRequirements) {
       return NextResponse.json(
         { error: "Missing paymentPayload or paymentRequirements" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -146,19 +143,13 @@ async function handleSettle(request: NextRequest) {
     const HEDERA_PRIVATE_KEY = process.env.HEDERA_FACILITATOR_PRIVATE_KEY;
 
     if (!HEDERA_ACCOUNT_ID || !HEDERA_PRIVATE_KEY) {
-      return NextResponse.json(
-        { error: "Facilitator not configured" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Facilitator not configured" }, { status: 500 });
     }
 
     // Determine network from payment requirements
     const network = paymentRequirements.network;
     if (!["hedera-testnet", "hedera-mainnet"].includes(network)) {
-      return NextResponse.json(
-        { error: "Invalid network" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid network" }, { status: 400 });
     }
 
     // Create signer for the network
@@ -172,8 +163,7 @@ async function handleSettle(request: NextRequest) {
     console.error("Error in POST /api/facilitator/settle:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

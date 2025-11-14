@@ -2,15 +2,15 @@
 
 /**
  * Test script for Hedera x402 Facilitator using ethers.js
- * 
+ *
  * This script tests the facilitator endpoints by:
  * 1. Creating a payment transaction (HBAR or token)
  * 2. Verifying the payment via /api/facilitator/verify
  * 3. Settling the payment via /api/facilitator/settle
- * 
+ *
  * Usage:
  *   cd frontend && tsx scripts/testFacilitatorEthers.ts
- * 
+ *
  * Environment Variables:
  *   HEDERA_ACCOUNT_ID - Your Hedera account ID (payer)
  *   HEDERA_PRIVATE_KEY - Your Hedera private key (payer) - can be 0x format
@@ -73,7 +73,9 @@ if (!HEDERA_FACILITATOR_ACCOUNT_ID) {
   console.error("❌ Missing facilitator environment variable:");
   console.error("   HEDERA_FACILITATOR_ACCOUNT_ID - Facilitator account ID");
   console.error("\n   This should be set in your .env.local file");
-  console.error("   Note: HEDERA_FACILITATOR_PRIVATE_KEY is only needed on the facilitator server, not in this test script");
+  console.error(
+    "   Note: HEDERA_FACILITATOR_PRIVATE_KEY is only needed on the facilitator server, not in this test script",
+  );
   process.exit(1);
 }
 
@@ -146,7 +148,7 @@ function createHbarTransferTransaction(
   client: Client,
 ): TransferTransaction {
   const transactionId = TransactionId.generate(facilitatorAccount);
-  
+
   const transaction = new TransferTransaction()
     .setTransactionId(transactionId)
     .addHbarTransfer(fromAccount, Hbar.fromTinybars(-parseInt(amount)))
@@ -167,7 +169,7 @@ function createTokenTransferTransaction(
   client: Client,
 ): TransferTransaction {
   const transactionId = TransactionId.generate(facilitatorAccount);
-  
+
   const transaction = new TransferTransaction()
     .setTransactionId(transactionId)
     .addTokenTransfer(tokenId, fromAccount, -parseInt(amount))
@@ -237,19 +239,19 @@ async function fetchWithEthers(url: string, options: RequestInit): Promise<Respo
  */
 async function testSupported(): Promise<void> {
   console.log("\n📋 Testing GET /api/facilitator/supported...");
-  
+
   try {
     const provider = createEthersProvider();
     const network = await provider.getNetwork();
     console.log(`   Network: ${network.name} (chainId: ${network.chainId})`);
-    
+
     const response = await fetchWithEthers(`${FACILITATOR_URL}/api/facilitator/supported`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
     });
-    
+
     const data = await response.json();
 
     if (!response.ok) {
@@ -267,14 +269,17 @@ async function testSupported(): Promise<void> {
 /**
  * Tests the facilitator /verify endpoint
  */
-async function testVerify(paymentPayload: PaymentPayload, paymentRequirements: PaymentRequirements): Promise<boolean> {
+async function testVerify(
+  paymentPayload: PaymentPayload,
+  paymentRequirements: PaymentRequirements,
+): Promise<boolean> {
   console.log("\n🔍 Testing POST /api/facilitator/verify...");
-  
+
   try {
     const provider = createEthersProvider();
     const network = await provider.getNetwork();
     console.log(`   Using network: ${network.name} (chainId: ${network.chainId})`);
-    
+
     const response = await fetchWithEthers(`${FACILITATOR_URL}/api/facilitator/verify`, {
       method: "POST",
       headers: {
@@ -305,14 +310,17 @@ async function testVerify(paymentPayload: PaymentPayload, paymentRequirements: P
 /**
  * Tests the facilitator /settle endpoint
  */
-async function testSettle(paymentPayload: PaymentPayload, paymentRequirements: PaymentRequirements): Promise<void> {
+async function testSettle(
+  paymentPayload: PaymentPayload,
+  paymentRequirements: PaymentRequirements,
+): Promise<void> {
   console.log("\n💰 Testing POST /api/facilitator/settle...");
-  
+
   try {
     const provider = createEthersProvider();
     const network = await provider.getNetwork();
     console.log(`   Using network: ${network.name} (chainId: ${network.chainId})`);
-    
+
     const response = await fetchWithEthers(`${FACILITATOR_URL}/api/facilitator/settle`, {
       method: "POST",
       headers: {
@@ -385,7 +393,7 @@ async function main(): Promise<void> {
     console.log(`\n💼 Wallet Info:`);
     console.log(`   Hedera Account ID: ${payerAccountId.toString()}`);
     console.log(`   EVM Address: ${ethersWallet.address}`);
-    
+
     // Check balance using ethers
     try {
       const balance = await getBalance(provider, ethersWallet.address);
@@ -459,4 +467,3 @@ main().catch((error) => {
   console.error("Fatal error:", error);
   process.exit(1);
 });
-

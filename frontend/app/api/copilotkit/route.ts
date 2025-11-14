@@ -13,6 +13,8 @@ export async function POST(request: NextRequest) {
   const swapAgentUrl = process.env.SWAP_AGENT_URL || "http://localhost:9999";
   const multichainLiquidityAgentUrl =
     process.env.MULTICHAIN_LIQUIDITY_AGENT_URL || "http://localhost:9998";
+  const sentimentAgentUrl = process.env.SENTIMENT_AGENT_URL || "http://localhost:10000";
+  const tradingAgentUrl = process.env.TRADING_AGENT_URL || "http://localhost:10001";
   // const poolCalculatorAgentUrl = process.env.POOL_CALCULATOR_AGENT_URL || "http://localhost:9996";
   // const marketInsightsAgentUrl = process.env.MARKET_INSIGHTS_AGENT_URL || "http://localhost:9992";
   // const swapRouterAgentUrl = process.env.SWAP_ROUTER_AGENT_URL || "http://localhost:9993";
@@ -32,11 +34,13 @@ export async function POST(request: NextRequest) {
   // 4. Routing messages between orchestrator and A2A agents
   const a2aMiddlewareAgent = new A2AMiddlewareAgent({
     description:
-      "DeFi orchestrator with balance, multi-chain liquidity, pool calculator, swap, swap router, and bridge agents (Hedera, Polygon, Ethereum)",
+      "DeFi orchestrator with balance, multi-chain liquidity, pool calculator, swap, swap router, bridge, sentiment, and trading agents (Hedera, Polygon, Ethereum)",
     agentUrls: [
       balanceAgentUrl, // Balance Agent (A2A) - Port 9997
       multichainLiquidityAgentUrl, // Multi-Chain Liquidity Agent (A2A) - Port 9998
       swapAgentUrl, // Swap Agent (A2A) - Port 9999
+      sentimentAgentUrl, // Sentiment Agent (A2A) - Port 10000
+      tradingAgentUrl, // Trading Agent (A2A) - Port 10001
       // poolCalculatorAgentUrl, // Pool Calculator Agent (A2A) - Port 9996
       // marketInsightsAgentUrl, // Market Insights Agent (A2A) - Port 9992
       // swapRouterAgentUrl, // Swap Router Agent (A2A) - Port 9993
@@ -70,7 +74,22 @@ export async function POST(request: NextRequest) {
          - Example queries: "Get liquidity for ETH/USDT", "Find liquidity pools for HBAR/USDC", "Get liquidity on Polygon"
          - Returns combined results from all queried chains in a single response
 
-      3. **Market Insights Agent** (ADK)
+      4. **Sentiment Agent** (A2A)
+         - Provides cryptocurrency sentiment analysis using Santiment API
+         - Supports sentiment balance, social volume, social dominance, trending words, and social shifts
+         - Format: "Get sentiment balance for [asset] over [days] days" or "Get social volume for [asset]"
+         - Example queries: "Get sentiment balance for Bitcoin over the last week", "How many times has Ethereum been mentioned on social media?", "What are the top 3 trending words in crypto?", "How dominant is Ethereum in social media discussions?"
+         - Returns sentiment analysis data including metrics and insights
+
+      5. **Trading Agent** (A2A)
+         - Provides intelligent buy/sell recommendations for BTC and ETH
+         - Combines technical analysis (RSI, MACD, Moving Averages), sentiment analysis, and ML predictions
+         - Format: "Should I buy or sell [BTC/ETH]?" or "Get trading recommendation for [BTC/ETH]"
+         - Example queries: "Should I buy Bitcoin?", "What's the trading recommendation for Ethereum?", "Is it a good time to sell BTC?", "Should I buy or sell ETH now?"
+         - Returns buy/sell/hold recommendation with entry price, stop loss, targets, confidence, and reasoning
+         - Only supports Bitcoin (BTC) and Ethereum (ETH)
+
+      6. **Market Insights Agent** (ADK)
          - Fetches comprehensive market data using CoinGecko API
          - Provides liquidity across pools, volume, trending token addresses, and real-time prices
          - Supports multiple networks: Ethereum (eth), Polygon (polygon), Hedera (hedera)
