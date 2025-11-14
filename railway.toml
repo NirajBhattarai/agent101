@@ -2,7 +2,7 @@
 builder = "NIXPACKS"
 # Use uv standalone installer (doesn't require Python)
 # Nixpacks will auto-detect Python from requirements.txt/pyproject.toml
-buildCommand = "curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=\"$HOME/.cargo/bin:$PATH\" && uv sync"
+buildCommand = "curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=\"$HOME/.local/bin:$HOME/.cargo/bin:$PATH\" && uv sync"
 
 [deploy]
 # Note: Start command should be set per service in Railway dashboard
