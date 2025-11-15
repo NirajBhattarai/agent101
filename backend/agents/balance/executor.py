@@ -52,9 +52,9 @@ class BalanceExecutor(AgentExecutor):
     """
     Executor for Balance Agent using A2A Protocol.
 
-    Uses BalanceAgent which implements ADK SequentialAgent pipeline:
-    1. Token/Address Extractor Agent - Extracts tokens and account address
-    2. Balance Fetcher Agent - Prepares execution parameters
+    Uses root_agent (SequentialAgent) which implements ADK SequentialAgent pipeline:
+    1. Token Extraction Agent - Extracts token information (symbols, addresses, networks)
+    2. Balance Extraction Agent - Extracts account addresses and prepares balance queries
     3. Executes balance fetching and returns response
     """
 
@@ -81,21 +81,24 @@ class BalanceExecutor(AgentExecutor):
         print(f"   Session ID: {session_id}")
         try:
             # Use Runner to properly execute SequentialAgent
-            # Use "balance" as app_name to match the agent's directory location
+            # Use "agents" as app_name to match what ADK infers from SequentialAgent's module path
+            # (SequentialAgent is loaded from google.adk.agents, so ADK expects "agents")
+            # This avoids the "App name mismatch" warning
+            app_name = "agents"
             runner = InMemoryRunner(
                 agent=self.agent,
-                app_name="balance",
+                app_name=app_name,
             )
 
             # Create or get the session first
             session = await runner.session_service.get_session(
-                app_name="balance",
+                app_name=app_name,
                 user_id="user",
                 session_id=session_id,
             )
             if not session:
                 session = await runner.session_service.create_session(
-                    app_name="balance",
+                    app_name=app_name,
                     user_id="user",
                     session_id=session_id,
                 )
@@ -111,7 +114,7 @@ class BalanceExecutor(AgentExecutor):
 
             # Get the updated session to access state
             session = await runner.session_service.get_session(
-                app_name="balance",
+                app_name=app_name,
                 user_id="user",
                 session_id=session_id,
             )
@@ -133,7 +136,7 @@ class BalanceExecutor(AgentExecutor):
             from .token_extractor_agent import parse_token_response
 
             # Parse responses from both agents
-            token_data = parse_token_response(session)
+            parse_token_response(session)  # Token data parsed but not used in current flow
             balance_data = parse_balance_response(session)
 
             # Check for errors
