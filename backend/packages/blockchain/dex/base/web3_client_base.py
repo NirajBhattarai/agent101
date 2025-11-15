@@ -39,7 +39,7 @@ class BaseUniswapV3Client:
         self.w3 = Web3(HTTPProvider(rpc_url))
         self.factory_address = factory_address
         self.network_name = network_name
-        self._factory_contract: Optional[Contract] = None
+        self._factory_contract: Contract | None = None
         self.logger = logging.getLogger(f"{self.__class__.__name__}.{network_name}")
 
     @property
@@ -57,7 +57,7 @@ class BaseUniswapV3Client:
         token_a: str,
         token_b: str,
         fee: int = 3000,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Get pool address from factory.
 
@@ -172,7 +172,7 @@ class BaseUniswapV3Client:
         token_a: str,
         token_b: str,
         fee: int = 3000,
-    ) -> Optional[PoolInfo]:
+    ) -> PoolInfo | None:
         """
         Get complete pool information including address, liquidity, and slot0.
         Tries all fee tiers (500, 3000, 10000) until a pool is found.
@@ -254,7 +254,7 @@ class BaseUniswapV3Client:
         self,
         token_a: str,
         token_b: str,
-    ) -> dict[int, Optional[PoolInfo]]:
+    ) -> dict[int, PoolInfo | None]:
         """
         Get pool information for all fee tiers.
 
@@ -265,7 +265,7 @@ class BaseUniswapV3Client:
         Returns:
             Dictionary mapping fee tier to pool info (or None if pool doesn't exist)
         """
-        results: dict[int, Optional[PoolInfo]] = {}
+        results: dict[int, PoolInfo | None] = {}
         for fee in FEE_TIERS:
             try:
                 pool_info = self.get_pool_info(token_a, token_b, fee)

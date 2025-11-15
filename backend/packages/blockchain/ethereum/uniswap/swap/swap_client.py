@@ -5,7 +5,7 @@ Handles swap configuration and preparation for Ethereum chain using Uniswap V3.
 """
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from packages.blockchain.ethereum.constants import ETHEREUM_TOKENS
 
@@ -20,7 +20,7 @@ UNISWAP_ETHEREUM_DEX_CONFIG = {
 ETHEREUM_MAINNET_RPC = os.getenv("ETHEREUM_MAINNET_RPC", "https://eth.llamarpc.com")
 
 
-def get_token_address_ethereum(token_symbol: str) -> Optional[str]:
+def get_token_address_ethereum(token_symbol: str) -> str | None:
     """
     Get token address for Ethereum.
 
@@ -44,8 +44,8 @@ def get_swap_ethereum(
     amount_in: str,
     account_address: str,
     slippage_tolerance: float = 0.5,
-    dex_name: Optional[str] = None,
-) -> Dict[str, Any]:
+    dex_name: str | None = None,
+) -> dict[str, Any]:
     """
     Get swap configuration for Ethereum chain using Uniswap V3.
 

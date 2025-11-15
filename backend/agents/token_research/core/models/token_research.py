@@ -10,11 +10,11 @@ class TokenInfo(BaseModel):
 
     symbol: str = Field(description="Token symbol")
     name: str = Field(description="Token name")
-    address: Optional[str] = Field(default=None, description="Token contract address")
-    chain: Optional[str] = Field(default=None, description="Chain name")
-    decimals: Optional[int] = Field(default=None, description="Token decimals")
-    coin_id: Optional[str] = Field(default=None, description="CoinGecko coin ID")
-    market_cap_rank: Optional[int] = Field(default=None, description="Market cap rank")
+    address: str | None = Field(default=None, description="Token contract address")
+    chain: str | None = Field(default=None, description="Chain name")
+    decimals: int | None = Field(default=None, description="Token decimals")
+    coin_id: str | None = Field(default=None, description="CoinGecko coin ID")
+    market_cap_rank: int | None = Field(default=None, description="Market cap rank")
 
 
 class TokenSearchResult(BaseModel):
@@ -37,13 +37,13 @@ class TokenResearchResponse(BaseModel):
     """Token research response model."""
 
     type: str = Field(default="token_research", description="Response type")
-    query_type: Optional[str] = Field(
+    query_type: str | None = Field(
         default=None, description="Type of query (search, discovery, etc.)"
     )
-    token_symbol: Optional[str] = Field(default=None, description="Token symbol if specific search")
-    chain: Optional[str] = Field(default=None, description="Chain name if specific")
-    search_result: Optional[TokenSearchResult] = Field(default=None, description="Search results")
-    discovery_result: Optional[TokenDiscoveryResult] = Field(
+    token_symbol: str | None = Field(default=None, description="Token symbol if specific search")
+    chain: str | None = Field(default=None, description="Chain name if specific")
+    search_result: TokenSearchResult | None = Field(default=None, description="Search results")
+    discovery_result: TokenDiscoveryResult | None = Field(
         default=None, description="Discovery results"
     )
-    error: Optional[str] = Field(default=None, description="Error message if any")
+    error: str | None = Field(default=None, description="Error message if any")

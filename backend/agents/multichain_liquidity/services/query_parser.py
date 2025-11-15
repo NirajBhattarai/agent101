@@ -16,7 +16,7 @@ from ..core.constants import (
 from .token_resolver import resolve_token_pair
 
 
-def detect_chain_from_query(query: str) -> Optional[str]:
+def detect_chain_from_query(query: str) -> str | None:
     """Detect chain from query text."""
     query_lower = query.lower()
 
@@ -49,7 +49,7 @@ def parse_chain(query: str) -> str:
     return CHAIN_ALL  # Default to all chains
 
 
-def extract_token_symbols(query: str) -> tuple[Optional[str], Optional[str]]:
+def extract_token_symbols(query: str) -> tuple[str | None, str | None]:
     """
     Extract token symbols from query without resolving to addresses.
     Returns raw symbols (e.g., "ETH", "USDT", "MATIC") or addresses if found.
@@ -151,7 +151,7 @@ def extract_token_symbols(query: str) -> tuple[Optional[str], Optional[str]]:
     return None, None
 
 
-def extract_token_addresses(query: str) -> tuple[Optional[str], Optional[str]]:
+def extract_token_addresses(query: str) -> tuple[str | None, str | None]:
     """
     Extract token addresses from query.
     First tries to find EVM addresses, then tries to resolve token symbols.
@@ -191,7 +191,7 @@ def extract_token_addresses(query: str) -> tuple[Optional[str], Optional[str]]:
     return None, None
 
 
-def extract_fee_tier(query: str) -> Optional[int]:
+def extract_fee_tier(query: str) -> int | None:
     """Extract fee tier from query."""
     # Look for fee mentions: 500, 3000, 10000 or 0.05%, 0.3%, 1%
     fee_patterns = [

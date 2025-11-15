@@ -3,12 +3,12 @@ Technical Analysis Tools
 Calculates RSI, MACD, Moving Averages, and other indicators
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 
 
-def calculate_rsi(prices: List[float], period: int = 14) -> float:
+def calculate_rsi(prices: list[float], period: int = 14) -> float:
     """Calculate Relative Strength Index (RSI)."""
     if len(prices) < period + 1:
         return 50.0  # Neutral RSI if insufficient data
@@ -29,7 +29,7 @@ def calculate_rsi(prices: List[float], period: int = 14) -> float:
     return round(rsi, 2)
 
 
-def calculate_ema(prices: List[float], period: int) -> List[float]:
+def calculate_ema(prices: list[float], period: int) -> list[float]:
     """Calculate Exponential Moving Average (EMA)."""
     if len(prices) < period:
         return prices
@@ -43,7 +43,7 @@ def calculate_ema(prices: List[float], period: int) -> List[float]:
     return ema
 
 
-def calculate_sma(prices: List[float], period: int) -> float:
+def calculate_sma(prices: list[float], period: int) -> float:
     """Calculate Simple Moving Average (SMA)."""
     if len(prices) < period:
         return prices[-1] if prices else 0.0
@@ -52,8 +52,8 @@ def calculate_sma(prices: List[float], period: int) -> float:
 
 
 def calculate_macd(
-    prices: List[float], fast: int = 12, slow: int = 26, signal: int = 9
-) -> Dict[str, Any]:
+    prices: list[float], fast: int = 12, slow: int = 26, signal: int = 9
+) -> dict[str, Any]:
     """Calculate MACD (Moving Average Convergence Divergence)."""
     if len(prices) < slow:
         return {"macd_line": 0.0, "signal_line": 0.0, "histogram": 0.0, "signal": "neutral"}
@@ -87,8 +87,8 @@ def calculate_macd(
 
 
 def calculate_bollinger_bands(
-    prices: List[float], period: int = 20, std_dev: int = 2
-) -> Dict[str, float]:
+    prices: list[float], period: int = 20, std_dev: int = 2
+) -> dict[str, float]:
     """Calculate Bollinger Bands."""
     if len(prices) < period:
         current_price = prices[-1] if prices else 0.0
@@ -104,7 +104,7 @@ def calculate_bollinger_bands(
     }
 
 
-def find_support_resistance(prices: List[float]) -> Dict[str, float]:
+def find_support_resistance(prices: list[float]) -> dict[str, float]:
     """Find support and resistance levels."""
     if not prices:
         return {"support": 0.0, "resistance": 0.0}
@@ -119,7 +119,7 @@ def find_support_resistance(prices: List[float]) -> Dict[str, float]:
     }
 
 
-def calculate_volatility(prices: List[float]) -> float:
+def calculate_volatility(prices: list[float]) -> float:
     """Calculate annualized volatility."""
     if len(prices) < 2:
         return 0.0
@@ -152,7 +152,7 @@ def determine_market_phase(current_price: float, ma20: float, ma50: float, ma200
         return "Accumulation"
 
 
-def calculate_technical_indicators(prices: List[float], volumes: List[float]) -> Dict[str, Any]:
+def calculate_technical_indicators(prices: list[float], volumes: list[float]) -> dict[str, Any]:
     """Calculate all technical indicators."""
     if len(prices) < 50:
         current_price = prices[-1] if prices else 0.0

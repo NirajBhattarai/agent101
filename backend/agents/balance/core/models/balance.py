@@ -20,8 +20,8 @@ class TokenBalance(BaseModel):
     balance: str = Field(description="Balance in human-readable format")
     balance_raw: str = Field(description="Raw balance value")
     decimals: int = Field(description="Token decimals")
-    chain: Optional[str] = Field(default=None, description="Chain name")
-    error: Optional[str] = Field(default=None, description="Error message if any")
+    chain: str | None = Field(default=None, description="Chain name")
+    error: str | None = Field(default=None, description="Error message if any")
 
 
 class StructuredBalance(BaseModel):
@@ -34,11 +34,9 @@ class StructuredBalance(BaseModel):
     total_usd_value: str = Field(
         default=DEFAULT_TOTAL_USD_VALUE, description="Total USD value estimate"
     )
-    error: Optional[str] = Field(default=None, description="Error message if any")
-    query_type: Optional[str] = Field(
-        default=None, description="Type of query (e.g., popular_tokens)"
-    )
-    success: Optional[bool] = Field(
+    error: str | None = Field(default=None, description="Error message if any")
+    query_type: str | None = Field(default=None, description="Type of query (e.g., popular_tokens)")
+    success: bool | None = Field(
         default=None, description="Success indicator for discovery queries"
     )
-    discovery_result: Optional[dict] = Field(default=None, description="Token discovery results")
+    discovery_result: dict | None = Field(default=None, description="Token discovery results")

@@ -5,7 +5,7 @@ Handles swap configuration and preparation for Polygon chain using Uniswap V2 Ro
 """
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from web3 import Web3
 from web3.providers import HTTPProvider
@@ -30,7 +30,7 @@ def get_amounts_out(
     router_address: str,
     token_in_symbol: str,
     rpc_url: str,
-) -> Optional[list[int]]:
+) -> list[int] | None:
     """
     Call router.getAmountsOut to get expected output amounts (Uniswap V2 Router 02).
 
@@ -82,7 +82,7 @@ def get_amounts_out(
         return None
 
 
-def get_token_address_polygon(token_symbol: str) -> Optional[str]:
+def get_token_address_polygon(token_symbol: str) -> str | None:
     """
     Get token address for Polygon.
 
@@ -112,8 +112,8 @@ def get_swap_polygon(
     amount_in: str,
     account_address: str,
     slippage_tolerance: float = 0.5,
-    dex_name: Optional[str] = None,
-) -> Dict[str, Any]:
+    dex_name: str | None = None,
+) -> dict[str, Any]:
     """
     Get swap configuration for Polygon chain using Uniswap V2 Router 02.
 

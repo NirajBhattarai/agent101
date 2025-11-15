@@ -1,13 +1,13 @@
 """Response validation utilities for Token Research Agent."""
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 from .constants import ERROR_INVALID_JSON, ERROR_VALIDATION_FAILED
 from .models.token_research import TokenResearchResponse
 
 
-def validate_and_serialize_response(response_data: Dict[str, Any]) -> str:
+def validate_and_serialize_response(response_data: dict[str, Any]) -> str:
     """
     Validate and serialize response data.
 
@@ -43,7 +43,7 @@ def validate_json(json_string: str) -> None:
         raise ValueError(f"{ERROR_INVALID_JSON}: {str(e)}") from e
 
 
-def build_error_response(error_type: str, error_message: str) -> Dict[str, Any]:
+def build_error_response(error_type: str, error_message: str) -> dict[str, Any]:
     """
     Build error response.
 

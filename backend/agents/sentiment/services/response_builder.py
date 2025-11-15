@@ -4,17 +4,17 @@ Builds structured JSON responses
 """
 
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from ..core.constants import ERROR_EXECUTION_ERROR, RESPONSE_TYPE
 
 
 def build_sentiment_response(
     metric: str,
-    data: Dict[str, Any],
-    asset: Optional[str] = None,
-    days: Optional[int] = None,
-) -> Dict[str, Any]:
+    data: dict[str, Any],
+    asset: str | None = None,
+    days: int | None = None,
+) -> dict[str, Any]:
     """Build a sentiment response."""
     response = {
         "type": RESPONSE_TYPE,
@@ -33,8 +33,8 @@ def build_sentiment_response(
 def build_error_response(
     metric: str,
     error: str,
-    asset: Optional[str] = None,
-) -> Dict[str, Any]:
+    asset: str | None = None,
+) -> dict[str, Any]:
     """Build an error response."""
     return {
         "type": RESPONSE_TYPE,
@@ -45,7 +45,7 @@ def build_error_response(
     }
 
 
-def build_sentiment_balance_response(asset: str, days: int, result: Dict[str, Any]) -> str:
+def build_sentiment_balance_response(asset: str, days: int, result: dict[str, Any]) -> str:
     """Build sentiment balance response."""
     if not result.get("success"):
         response = build_error_response(
@@ -66,7 +66,7 @@ def build_sentiment_balance_response(asset: str, days: int, result: Dict[str, An
     return json.dumps(response, indent=2)
 
 
-def build_social_volume_response(asset: str, days: int, result: Dict[str, Any]) -> str:
+def build_social_volume_response(asset: str, days: int, result: dict[str, Any]) -> str:
     """Build social volume response."""
     if not result.get("success"):
         response = build_error_response(
@@ -88,7 +88,7 @@ def build_social_volume_response(asset: str, days: int, result: Dict[str, Any]) 
 
 
 def build_social_shift_response(
-    asset: str, threshold: float, days: int, result: Dict[str, Any]
+    asset: str, threshold: float, days: int, result: dict[str, Any]
 ) -> str:
     """Build social shift response."""
     if not result.get("success"):
@@ -113,7 +113,7 @@ def build_social_shift_response(
     return json.dumps(response, indent=2)
 
 
-def build_trending_words_response(days: int, top_n: int, result: Dict[str, Any]) -> str:
+def build_trending_words_response(days: int, top_n: int, result: dict[str, Any]) -> str:
     """Build trending words response."""
     if not result.get("success"):
         response = build_error_response("trending_words", result.get("error", "Unknown error"))
@@ -132,7 +132,7 @@ def build_trending_words_response(days: int, top_n: int, result: Dict[str, Any])
     return json.dumps(response, indent=2)
 
 
-def build_social_dominance_response(asset: str, days: int, result: Dict[str, Any]) -> str:
+def build_social_dominance_response(asset: str, days: int, result: dict[str, Any]) -> str:
     """Build social dominance response."""
     if not result.get("success"):
         response = build_error_response(
@@ -153,7 +153,7 @@ def build_social_dominance_response(asset: str, days: int, result: Dict[str, Any
     return json.dumps(response, indent=2)
 
 
-def build_price_response(metric: str, asset: str, days: int, result: Dict[str, Any]) -> str:
+def build_price_response(metric: str, asset: str, days: int, result: dict[str, Any]) -> str:
     """Build price response (USD or BTC)."""
     if not result.get("success"):
         response = build_error_response(metric, result.get("error", "Unknown error"), asset)
@@ -178,7 +178,7 @@ def build_price_response(metric: str, asset: str, days: int, result: Dict[str, A
     return json.dumps(response, indent=2)
 
 
-def build_volume_response(metric: str, asset: str, days: int, result: Dict[str, Any]) -> str:
+def build_volume_response(metric: str, asset: str, days: int, result: dict[str, Any]) -> str:
     """Build volume response (USD, BTC, or transaction volume)."""
     if not result.get("success"):
         response = build_error_response(metric, result.get("error", "Unknown error"), asset)
@@ -210,7 +210,7 @@ def build_volume_response(metric: str, asset: str, days: int, result: Dict[str, 
     return json.dumps(response, indent=2)
 
 
-def build_active_addresses_response(asset: str, days: int, result: Dict[str, Any]) -> str:
+def build_active_addresses_response(asset: str, days: int, result: dict[str, Any]) -> str:
     """Build active addresses response."""
     if not result.get("success"):
         response = build_error_response(

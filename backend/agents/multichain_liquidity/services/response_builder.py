@@ -40,9 +40,9 @@ def build_liquidity_response(
     chain: str,
     token_a: str,
     token_b: str,
-    ethereum_result: Optional[dict] = None,
-    polygon_result: Optional[dict] = None,
-    hedera_result: Optional[dict] = None,
+    ethereum_result: dict | None = None,
+    polygon_result: dict | None = None,
+    hedera_result: dict | None = None,
 ) -> dict:
     """Build liquidity response from parallel agent results."""
     results = []

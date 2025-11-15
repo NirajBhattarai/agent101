@@ -33,8 +33,8 @@ def get_v3_pair_address(
     token_b: str,
     fee: int = 3000,
     network: str = "mainnet",
-    rpc_url: Optional[str] = None,
-) -> Optional[str]:
+    rpc_url: str | None = None,
+) -> str | None:
     """
     Get V3 pair address from SaucerSwap factory using Web3.
 
@@ -65,9 +65,9 @@ def get_v3_pair_address_with_factory(
     token_a: str,
     token_b: str,
     fee: int = 3000,
-    factory_address: Optional[str] = None,
+    factory_address: str | None = None,
     network: str = "mainnet",
-) -> Optional[str]:
+) -> str | None:
     """
     Get V3 pair address using a specific factory address.
 

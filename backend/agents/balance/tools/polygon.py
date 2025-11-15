@@ -13,7 +13,7 @@ from packages.blockchain.polygon.balance import (
 from packages.blockchain.polygon.constants import POLYGON_TOKENS
 
 
-def _resolve_token_symbol_from_address(token_address: str) -> Optional[str]:
+def _resolve_token_symbol_from_address(token_address: str) -> str | None:
     """Resolve token symbol from token address."""
     token_address_upper = token_address.upper()
     if token_address_upper in POLYGON_TOKENS:
@@ -149,7 +149,7 @@ def _get_all_token_balances(w3: Web3, account_address: str) -> list:
     return balances
 
 
-def get_balance_polygon(account_address: str, token_address: Optional[str] = None) -> dict:
+def get_balance_polygon(account_address: str, token_address: str | None = None) -> dict:
     """
     Get token balance for an account on Polygon.
 

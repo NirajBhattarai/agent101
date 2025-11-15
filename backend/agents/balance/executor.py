@@ -10,8 +10,10 @@ import json
 from a2a.server.agent_execution import AgentExecutor, RequestContext  # noqa: E402
 from a2a.server.events import EventQueue  # noqa: E402
 from a2a.utils import new_agent_text_message  # noqa: E402
+from google.adk.runners import InMemoryRunner  # noqa: E402
+from google.genai import types  # noqa: E402
 
-from .agent import BalanceAgent  # noqa: E402
+from .agent import root_agent  # noqa: E402
 from .core.constants import (
     CHAIN_UNKNOWN,
     DEFAULT_SESSION_ID,
@@ -47,10 +49,17 @@ def _build_execution_error_response(error: Exception) -> str:
 
 
 class BalanceExecutor(AgentExecutor):
-    """Executor for Balance Agent using A2A Protocol."""
+    """
+    Executor for Balance Agent using A2A Protocol.
+
+    Uses BalanceAgent which implements ADK SequentialAgent pipeline:
+    1. Token/Address Extractor Agent - Extracts tokens and account address
+    2. Balance Fetcher Agent - Prepares execution parameters
+    3. Executes balance fetching and returns response
+    """
 
     def __init__(self):
-        self.agent = BalanceAgent()
+        self.agent = root_agent  # SequentialAgent with token and balance extraction
 
     async def execute(
         self,
@@ -59,19 +68,118 @@ class BalanceExecutor(AgentExecutor):
     ) -> None:
         """Execute the balance agent request."""
         # Log context details to debug request structure
-        print(f"🔍 Balance Executor - Context details:")
+        print("🔍 Balance Executor - Context details:")
         print(f"   Context type: {type(context)}")
         print(f"   Context attributes: {dir(context)}")
-        if hasattr(context, 'request'):
-            print(f"   Has request attribute: True")
-            if hasattr(context.request, 'params'):
+        if hasattr(context, "request"):
+            print("   Has request attribute: True")
+            if hasattr(context.request, "params"):
                 print(f"   Request params: {context.request.params}")
         query = context.get_user_input()
         print(f"📥 Balance Executor received request query: {query}")
         session_id = _get_session_id(context)
         print(f"   Session ID: {session_id}")
         try:
-            content = await self.agent.invoke(query, session_id)
+            # Use Runner to properly execute SequentialAgent
+            # Use "balance" as app_name to match the agent's directory location
+            runner = InMemoryRunner(
+                agent=self.agent,
+                app_name="balance",
+            )
+
+            # Create or get the session first
+            session = await runner.session_service.get_session(
+                app_name="balance",
+                user_id="user",
+                session_id=session_id,
+            )
+            if not session:
+                session = await runner.session_service.create_session(
+                    app_name="balance",
+                    user_id="user",
+                    session_id=session_id,
+                )
+
+            # Run the sequential agent with the query
+            async for _event in runner.run_async(
+                user_id="user",
+                session_id=session_id,
+                new_message=types.UserContent(parts=[types.Part(text=query)]),
+            ):
+                # Process events - session state will be updated
+                pass
+
+            # Get the updated session to access state
+            session = await runner.session_service.get_session(
+                app_name="balance",
+                user_id="user",
+                session_id=session_id,
+            )
+
+            # Get the final response from session state
+            # The balance extraction agent stores result in session.state['balance_data']
+            from .balance_extractor_agent import parse_balance_response
+            from .core.response_validator import (
+                build_error_response,
+                log_response_info,
+                validate_and_serialize_response,
+            )
+            from .services.response_builder import (
+                build_all_chains_token_response,
+                build_balance_response,
+                build_popular_tokens_response,
+                build_token_balance_response,
+            )
+            from .token_extractor_agent import parse_token_response
+
+            # Parse responses from both agents
+            token_data = parse_token_response(session)
+            balance_data = parse_balance_response(session)
+
+            # Check for errors
+            address_error = balance_data.get("address_error")
+            if address_error:
+                from .core.constants import (
+                    ERROR_ACCOUNT_ADDRESS_REQUIRED,
+                    ERROR_INVALID_ACCOUNT_ADDRESS,
+                )
+
+                error_msg = (
+                    ERROR_ACCOUNT_ADDRESS_REQUIRED
+                    if "required" in str(address_error).lower()
+                    else ERROR_INVALID_ACCOUNT_ADDRESS
+                )
+                chain = balance_data.get("chain", "unknown")
+                account_address = balance_data.get("account_address") or "N/A"
+                balance_response = build_error_response(
+                    chain, str(account_address), f"{error_msg}: {address_error}"
+                )
+                content = validate_and_serialize_response(balance_response)
+            else:
+                # Get execution parameters
+                chain = balance_data.get("chain", "unknown")
+                account_address = balance_data.get("account_address") or "N/A"
+                token_symbol = balance_data.get("token_symbol")
+                query_type = balance_data.get("query_type", "standard_balance")
+
+                # Execute the appropriate balance fetching function
+                if query_type == "popular_tokens":
+                    balance_response = build_popular_tokens_response(str(account_address))
+                elif query_type == "all_chains_token" and token_symbol:
+                    balance_response = build_all_chains_token_response(
+                        str(account_address), token_symbol
+                    )
+                elif query_type == "specific_token_chain" and token_symbol and chain != "all":
+                    balance_response = build_token_balance_response(
+                        chain, str(account_address), token_symbol
+                    )
+                else:
+                    balance_response = build_balance_response(
+                        chain, str(account_address), token_symbol
+                    )
+
+                content = validate_and_serialize_response(balance_response)
+                log_response_info(str(account_address), chain, content)
 
             # Ensure content is not empty
             if not content or not content.strip():

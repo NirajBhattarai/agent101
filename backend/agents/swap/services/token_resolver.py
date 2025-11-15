@@ -4,13 +4,13 @@ Token resolver for Swap Agent.
 Automatically resolves token addresses using Token Research Agent if not found in constants.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from ...token_research.tools.token_search import search_token_contract_address
 from .explorer_utils import get_explorer_url
 
 
-def resolve_token_address(token_symbol: str, chain: str) -> Optional[Dict[str, Any]]:
+def resolve_token_address(token_symbol: str, chain: str) -> dict[str, Any] | None:
     """
     Resolve token address for a given chain.
 
@@ -173,7 +173,7 @@ def resolve_token_address(token_symbol: str, chain: str) -> Optional[Dict[str, A
 
 def resolve_token_addresses_for_swap(
     token_in_symbol: str, token_out_symbol: str, chain: str
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Resolve both token addresses for a swap.
 

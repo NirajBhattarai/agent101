@@ -26,7 +26,7 @@ def get_hedera_api_base(network: str = "mainnet") -> str:
     return HEDERA_MAINNET_RPC
 
 
-def resolve_hedera_account_id(account_identifier: str, api_base: str) -> Optional[str]:
+def resolve_hedera_account_id(account_identifier: str, api_base: str) -> str | None:
     """
     Resolve account identifier to Hedera account ID format (0.0.123456).
 
@@ -72,7 +72,7 @@ def resolve_hedera_account_id(account_identifier: str, api_base: str) -> Optiona
     return None
 
 
-def get_account_identifier_for_api(account_address: str, account_id: Optional[str]) -> str:
+def get_account_identifier_for_api(account_address: str, account_id: str | None) -> str:
     """
     Get account identifier for API calls (prefers EVM format if available).
 

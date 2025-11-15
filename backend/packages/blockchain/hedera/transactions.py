@@ -1,6 +1,6 @@
 """Hedera transaction utilities."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 class TransactionService:
@@ -15,7 +15,7 @@ class TransactionService:
         """
         self.client = client
 
-    def create_transaction(self, transaction_data: Dict[str, Any]) -> Optional[str]:
+    def create_transaction(self, transaction_data: dict[str, Any]) -> str | None:
         """
         Create a new transaction on Hedera.
 
@@ -28,7 +28,7 @@ class TransactionService:
         # TODO: Implement transaction creation
         return None
 
-    def get_transaction_status(self, transaction_id: str) -> Dict[str, Any]:
+    def get_transaction_status(self, transaction_id: str) -> dict[str, Any]:
         """
         Get transaction status.
 

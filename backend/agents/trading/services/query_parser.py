@@ -4,7 +4,6 @@ Extracts asset and parameters from user queries
 """
 
 import re
-from typing import Tuple
 
 from ..core.constants import ASSET_MAPPING, DEFAULT_ASSET, DEFAULT_DAYS
 
@@ -50,7 +49,7 @@ def extract_days(query: str) -> int:
     return DEFAULT_DAYS
 
 
-def parse_trading_query(query: str) -> Tuple[str, int]:
+def parse_trading_query(query: str) -> tuple[str, int]:
     """Parse trading query to extract asset and days."""
     asset = extract_asset(query)
     days = extract_days(query)

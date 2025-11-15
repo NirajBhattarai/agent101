@@ -27,7 +27,11 @@ def validate_and_serialize_response(balance_data: dict) -> str:
         # Set defaults for required fields
         balance_data.setdefault("type", RESPONSE_TYPE)
         balance_data.setdefault("chain", "unknown")
-        balance_data.setdefault("account_address", "N/A")
+        # Ensure account_address is always a string, not None
+        if balance_data.get("account_address") is None:
+            balance_data["account_address"] = "N/A"
+        else:
+            balance_data["account_address"] = str(balance_data["account_address"])
         balance_data.setdefault("balances", [])
         balance_data.setdefault("total_usd_value", DEFAULT_TOTAL_USD_VALUE)
 

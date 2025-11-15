@@ -3,7 +3,7 @@ ML Prediction Model
 Simple model for price prediction using technical indicators
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
@@ -21,7 +21,7 @@ class MLPredictor:
         self.scaler = StandardScaler()
         self.is_trained = False
 
-    def prepare_features(self, prices: List[float], volumes: List[float]) -> np.ndarray:
+    def prepare_features(self, prices: list[float], volumes: list[float]) -> np.ndarray:
         """Prepare features for ML model."""
         if len(prices) < 50:
             return np.array([])
@@ -65,7 +65,7 @@ class MLPredictor:
 
         return np.array(features)
 
-    def train(self, prices: List[float], volumes: List[float]) -> Dict[str, Any]:
+    def train(self, prices: list[float], volumes: list[float]) -> dict[str, Any]:
         """Train the ML model."""
         features = self.prepare_features(prices, volumes)
 
@@ -120,7 +120,7 @@ class MLPredictor:
 
         return {"success": True, "accuracy": round(accuracy, 2), "training_samples": len(X_train)}
 
-    def predict(self, prices: List[float], volumes: List[float], days: int = 7) -> Dict[str, Any]:
+    def predict(self, prices: list[float], volumes: list[float], days: int = 7) -> dict[str, Any]:
         """Predict future prices."""
         if not self.is_trained:
             train_result = self.train(prices, volumes)

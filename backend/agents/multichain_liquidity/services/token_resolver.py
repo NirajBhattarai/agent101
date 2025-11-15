@@ -22,7 +22,7 @@ SYMBOL_ALIASES = {
 }
 
 
-def resolve_token_symbol(symbol: str, chain: str) -> Optional[str]:
+def resolve_token_symbol(symbol: str, chain: str) -> str | None:
     """
     Resolve a token symbol to its address for a specific chain.
     Uses both constants and discovered tokens from cache.
@@ -67,7 +67,7 @@ def resolve_token_symbol(symbol: str, chain: str) -> Optional[str]:
 
 def resolve_token_pair(
     token_a: str, token_b: str, chain: str = "all"
-) -> tuple[Optional[str], Optional[str]]:
+) -> tuple[str | None, str | None]:
     """
     Resolve a token pair (symbols or addresses) to addresses.
 

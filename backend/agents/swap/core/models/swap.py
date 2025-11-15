@@ -28,11 +28,11 @@ class SwapTransaction(BaseModel):
     dex_name: str = Field(description="DEX name (e.g., SaucerSwap, Uniswap)")
     pool_address: str = Field(description="Pool contract address")
     slippage_tolerance: float = Field(description="Slippage tolerance percentage")
-    transaction_hash: Optional[str] = Field(
+    transaction_hash: str | None = Field(
         default=None, description="Transaction hash if swap is initiated"
     )
     status: str = Field(description="Swap status: pending, completed, failed")
-    price_impact: Optional[str] = Field(default=None, description="Price impact percentage")
+    price_impact: str | None = Field(default=None, description="Price impact percentage")
 
 
 class SwapOption(BaseModel):
@@ -42,10 +42,10 @@ class SwapOption(BaseModel):
     amount_out: str = Field(description="Estimated amount out")
     swap_fee: str = Field(description="Swap fee")
     swap_fee_percent: float = Field(description="Swap fee percentage")
-    price_impact: Optional[str] = Field(default=None, description="Price impact")
+    price_impact: str | None = Field(default=None, description="Price impact")
     estimated_time: str = Field(description="Estimated swap time")
     pool_address: str = Field(description="Pool contract address")
-    is_recommended: Optional[bool] = Field(
+    is_recommended: bool | None = Field(
         default=False, description="Is this the recommended option (best rate)"
     )
 
@@ -68,26 +68,24 @@ class StructuredSwap(BaseModel):
     token_in_symbol: str = Field(description="Token symbol to swap from")
     token_out_symbol: str = Field(description="Token symbol to swap to")
     amount_in: str = Field(description="Amount to swap")
-    account_address: Optional[str] = Field(default=None, description="Account address")
-    balance_check: Optional[SwapBalanceCheck] = Field(
-        default=None, description="Balance check result"
-    )
-    swap_options: Optional[list[SwapOption]] = Field(
+    account_address: str | None = Field(default=None, description="Account address")
+    balance_check: SwapBalanceCheck | None = Field(default=None, description="Balance check result")
+    swap_options: list[SwapOption] | None = Field(
         default=None,
         description="Available swap options (TEMPORARY: not used, direct swap)",
     )
-    transaction: Optional[SwapTransaction] = Field(
+    transaction: SwapTransaction | None = Field(
         default=None, description="Swap transaction details (if initiated)"
     )
-    requires_confirmation: Optional[bool] = Field(
+    requires_confirmation: bool | None = Field(
         default=False,
         description="Whether explicit confirmation is required due to high amount",
     )
-    confirmation_threshold: Optional[float] = Field(
+    confirmation_threshold: float | None = Field(
         default=None, description="The threshold amount that requires confirmation"
     )
-    amount_exceeds_threshold: Optional[bool] = Field(
+    amount_exceeds_threshold: bool | None = Field(
         default=False,
         description="Whether the amount exceeds the confirmation threshold",
     )
-    error: Optional[str] = Field(default=None, description="Error message if any")
+    error: str | None = Field(default=None, description="Error message if any")

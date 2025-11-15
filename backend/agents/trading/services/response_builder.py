@@ -4,7 +4,7 @@ Builds structured JSON responses
 """
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 from ..core.constants import ERROR_EXECUTION_ERROR, RESPONSE_TYPE
 
@@ -21,9 +21,9 @@ def build_error_response(error: str, asset: str = "unknown") -> str:
 
 
 def build_trading_response(
-    recommendation: Dict[str, Any],
-    technical_indicators: Dict[str, Any],
-    ml_predictions: Dict[str, Any],
+    recommendation: dict[str, Any],
+    technical_indicators: dict[str, Any],
+    ml_predictions: dict[str, Any],
     asset: str,
     days: int,
 ) -> str:

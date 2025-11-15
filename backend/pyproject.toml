@@ -5,85 +5,141 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agent101-backend"
 version = "0.1.0"
-description = "Backend API for Agent101"
+description = "Backend API for Agent101 - Multi-chain Liquidity Aggregator with AI Agents"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 license = {text = "MIT"}
 authors = [
     {name = "Agent101 Team"}
 ]
-keywords = ["api", "backend", "fastapi"]
+keywords = ["api", "backend", "fastapi", "ai-agents", "blockchain", "defi", "liquidity"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet",
 ]
 
 dependencies = [
-    "a2a-sdk>=0.3.0",
+    # A2A Protocol (Agent-to-Agent Communication)
+    "a2a-sdk>=0.3.10",
     "a2a-server>=0.6.1",
+    
+    # Google ADK (Agent Development Kit)
+    "google-adk>=1.17.0",
+    
+    # Web Framework
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
+    
+    # Data Validation & Settings
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
+    
+    # Environment & Configuration
     "python-dotenv>=1.0.0",
-    "google-adk>=1.18.0",
+    
+    # Blockchain - Hedera/Hiero
+    "hiero-sdk-python>=0.1.7,<0.2.0",
+    
+    # Blockchain - EVM (Ethereum, Polygon, etc.)
     "web3>=6.15.0",
-    "requests>=2.31.0",
+    
+    # HTTP Client (>=2.32.3 to support hiero-sdk-python which requires 2.32.3)
+    "requests>=2.32.3",
+    
+    # Data Science & ML
     "numpy>=1.24.0",
     "pandas>=2.0.0",
     "scikit-learn>=1.3.0",
-    # ag-ui-adk: AG-UI Protocol adapter for Google ADK agents
-    # Allows ADK agents to communicate with the frontend using AG-UI Protocol
+    
+    # AG-UI Protocol Adapter (Frontend Integration)
     "ag-ui-adk>=0.0.1",
-    # Token discovery and search
+    
+    # Token Discovery & Price Data
     "coingecko>=0.13.0",
-    # Hedera SDK for token ID conversions (optional - has dependency conflicts)
-    # Install manually if needed: pip install hiero-sdk-python
-    # "hiero-sdk-python>=0.1.0",
 ]
 
 [project.optional-dependencies]
 dev = [
+    # Testing
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.1.0",
+    
+    # HTTP Testing
     "httpx>=0.26.0",
+    
+    # Code Formatting & Linting
     "black>=24.1.0",
     "ruff>=0.1.0",
+    
+    # Type Checking
     "mypy>=1.8.0",
+    
+    # Development Tools
+    "ipython>=8.0.0",
+    "ipdb>=0.13.0",
 ]
 
-# Removed project.scripts.start - use uvicorn directly or create a proper entry point
+# UV dependency overrides to resolve conflicts
+# hiero-sdk-python requires requests==2.32.3, but google-adk requires requests>=2.32.4
+# We override to use requests==2.32.3 which should work with both (google-adk's constraint is likely conservative)
+[tool.uv]
+override-dependencies = [
+    "requests==2.32.3",
+]
 
 [tool.setuptools]
 packages = ["packages", "agents"]
-# Note: packages/blockchain/dex is included in packages
 
 [tool.black]
 line-length = 100
-target-version = ["py311"]
+target-version = ["py311", "py312"]
 include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "dist",
+    "build",
+]
 
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
 ]
 ignore = [
-    "E501",  # line too long, handled by black
-    "E402",  # module level import not at top of file (intentional in some cases)
-    "E722",  # do not use bare except (intentional in some error handling)
+    "E501",   # line too long, handled by black
+    "E402",   # module level import not at top of file
+    "E722",   # do not use bare except
+    "F401",   # unused imports (handled by ruff itself in __init__.py)
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -94,14 +150,27 @@ ignore = [
 "agents/trading/__main__.py" = ["E402"]
 "packages/blockchain/hedera/balance/balance_client.py" = ["E722"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["packages", "agents"]
+
 [tool.mypy]
 python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "google.*",
+    "hiero.*",
+    "web3.*",
+    "coingecko.*",
+]
+ignore_errors = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "packages"]
+testpaths = ["tests", "packages", "agents"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -116,6 +185,12 @@ addopts = [
     "--cov-report=xml",
     "-v",
 ]
+markers = [
+    "asyncio: marks tests as async",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "slow: marks tests as slow",
+]
 
 [tool.coverage.run]
 source = ["packages", "agents"]
@@ -124,6 +199,8 @@ omit = [
     "*/test_*.py",
     "*/__pycache__/*",
     "*/__init__.py",
+    "*/venv/*",
+    "*/.venv/*",
 ]
 
 [tool.coverage.report]
@@ -135,5 +212,9 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
     "@abstractmethod",
+    "pass",
 ]
+precision = 2
 
+[tool.coverage.html]
+directory = "htmlcov"

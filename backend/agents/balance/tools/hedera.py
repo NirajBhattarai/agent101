@@ -14,7 +14,7 @@ from packages.blockchain.hedera.constants import HEDERA_TOKENS
 from packages.blockchain.hedera.utils import resolve_token_identifier
 
 
-def _resolve_token_symbol_from_id(token_id: str) -> Optional[str]:
+def _resolve_token_symbol_from_id(token_id: str) -> str | None:
     """Resolve token symbol from token ID."""
     token_id_upper = token_id.upper()
     if token_id_upper in HEDERA_TOKENS:
@@ -163,7 +163,7 @@ def _get_all_token_balances(api_base: str, account_identifier: str) -> list:
     return balances
 
 
-def get_balance_hedera(account_address: str, token_address: Optional[str] = None) -> dict:
+def get_balance_hedera(account_address: str, token_address: str | None = None) -> dict:
     """
     Get token balance for an account on Hedera chain.
 

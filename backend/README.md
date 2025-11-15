@@ -222,7 +222,7 @@ Base classes and utilities for DEX integrations:
 ### Prerequisites
 
 - Python 3.11 or higher
-- pip or uv (recommended for faster installs)
+- uv (Python package manager, recommended)
 - Google API Key (for Gemini models)
 
 ### Installation
@@ -232,20 +232,15 @@ Base classes and utilities for DEX integrations:
 cd backend
 ```
 
-2. **Create virtual environment** (optional but recommended):
+2. **Create virtual environment and install dependencies** (using uv):
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+uv venv
+uv sync --extra dev
 ```
 
-3. **Install dependencies**:
+Or using Makefile:
 ```bash
-pip install -e ".[dev]"
-```
-
-Or using uv (faster):
-```bash
-uv pip install -e ".[dev]"
+make backend-install
 ```
 
 ### Environment Variables
@@ -295,22 +290,14 @@ Each agent can be run as a module:
 
 ```bash
 # Orchestrator
-python -m agents.orchestrator
+uv run -m agents.orchestrator.orchestrator
 
 # Specialized Agents
-python -m agents.balance
-python -m agents.multichain_liquidity
-python -m agents.swap
-python -m agents.sentiment
-python -m agents.trading
-```
-
-**Option 3: Using uv**
-
-```bash
-uv run -m agents.orchestrator
 uv run -m agents.balance
-# etc.
+uv run -m agents.multichain_liquidity
+uv run -m agents.swap
+uv run -m agents.sentiment
+uv run -m agents.trading
 ```
 
 ### Agent Endpoints
@@ -487,13 +474,17 @@ packages/blockchain/*/__test__/
 
 ```bash
 # All tests
-pytest
+uv run pytest
 
 # Specific package
-pytest packages/blockchain/hedera/saucerswap/__test__/
+uv run pytest packages/blockchain/hedera/saucerswap/__test__/
 
 # With coverage
-pytest --cov=packages --cov=agents --cov-report=html
+uv run pytest --cov=packages --cov=agents --cov-report=html
+
+# Or using Makefile:
+make backend-test
+make backend-test-coverage
 ```
 
 ## 📚 Dependencies
@@ -539,14 +530,16 @@ python --version  # Should be 3.11+
 
 Ensure package is installed in editable mode:
 ```bash
-pip install -e ".[dev]"
+uv sync --extra dev
+# Or using Makefile:
+make backend-install
 ```
 
 ### A2A Communication Issues
 
 1. Verify all agents are running
 2. Check agent ports match configuration
-3. Verify A2A SDK is installed: `pip list | grep a2a`
+3. Verify A2A SDK is installed: `uv pip list | grep a2a`
 
 ## 📖 Additional Resources
 

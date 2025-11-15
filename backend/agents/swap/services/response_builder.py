@@ -10,7 +10,7 @@ Matches agentflow101's swap executor service pattern:
 
 import os
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from ...balance.tools.ethereum import get_balance_ethereum
 from ...balance.tools.hedera import get_balance_hedera
@@ -52,7 +52,7 @@ def _get_swap_config(
     amount: str,
     account: str,
     slippage: float,
-    token_out_decimals: Optional[int] = None,
+    token_out_decimals: int | None = None,
 ) -> dict:
     """Get swap configuration for chain."""
     if chain == "hedera":
@@ -160,7 +160,7 @@ def _fetch_balance(chain: str, account: str, token_address: str, token_symbol: s
 
 def _calculate_amount_out_from_pool(
     amount_in: float,
-    pool_info: Dict[str, Any],
+    pool_info: dict[str, Any],
     token_in_symbol: str,
     token_out_symbol: str,
     chain: str,
@@ -271,9 +271,9 @@ def _get_pool_info(
     token_in_address_evm: str,
     token_out_address_evm: str,
     rpc_url: str,
-    token_in_symbol: Optional[str] = None,
-    token_out_symbol: Optional[str] = None,
-) -> Optional[Dict[str, Any]]:
+    token_in_symbol: str | None = None,
+    token_out_symbol: str | None = None,
+) -> dict[str, Any] | None:
     """
     Get pool address and liquidity information.
 
@@ -369,7 +369,7 @@ def execute_swap(
     token_in_symbol: str,
     token_out_symbol: str,
     amount_in: str,
-    account_address: Optional[str],
+    account_address: str | None,
     slippage_tolerance: float,
 ) -> dict:
     """

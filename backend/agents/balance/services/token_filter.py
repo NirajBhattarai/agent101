@@ -3,10 +3,10 @@ Token filtering utilities for balance agent.
 Centralized functions for filtering balances by token symbol.
 """
 
-from typing import List, Optional
+from typing import Optional
 
 
-def filter_balances_by_token(balances: List[dict], token_symbol: Optional[str]) -> List[dict]:
+def filter_balances_by_token(balances: list[dict], token_symbol: str | None) -> list[dict]:
     """
     Filter balances by token symbol.
 
@@ -29,8 +29,8 @@ def filter_balances_by_token(balances: List[dict], token_symbol: Optional[str]) 
 
 
 def filter_balances_by_token_and_chain(
-    balances: List[dict], token_symbol: Optional[str], chain: Optional[str] = None
-) -> List[dict]:
+    balances: list[dict], token_symbol: str | None, chain: str | None = None
+) -> list[dict]:
     """
     Filter balances by token symbol and optionally by chain.
 

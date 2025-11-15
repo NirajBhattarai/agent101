@@ -5,7 +5,7 @@ Santiment API integration for sentiment analysis
 import os
 import re
 from datetime import UTC, datetime, timedelta
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional
 
 import requests
 from dotenv import load_dotenv
@@ -17,7 +17,7 @@ SANTIMENT_API_URL = "https://api.santiment.net/graphql"
 HEADERS = {"Authorization": f"Apikey {SANTIMENT_API_KEY}"} if SANTIMENT_API_KEY else {}
 
 
-def parse_allowed_date_range(error_message: str) -> Optional[Tuple[datetime, datetime]]:
+def parse_allowed_date_range(error_message: str) -> tuple[datetime, datetime] | None:
     """Parse allowed date range from Santiment API error message."""
     try:
         # Extract date strings from error message
@@ -59,9 +59,9 @@ def parse_allowed_date_range(error_message: str) -> Optional[Tuple[datetime, dat
 def adjust_date_range(
     requested_from: datetime,
     requested_to: datetime,
-    allowed_from: Optional[datetime] = None,
-    allowed_to: Optional[datetime] = None,
-) -> Tuple[datetime, datetime]:
+    allowed_from: datetime | None = None,
+    allowed_to: datetime | None = None,
+) -> tuple[datetime, datetime]:
     """Adjust date range to fit within subscription limits."""
     # If no limits provided, use requested range
     if allowed_from is None and allowed_to is None:
@@ -93,7 +93,7 @@ def adjust_date_range(
 
 def fetch_santiment_data(
     metric: str, asset: str, days: int, retry_with_adjusted_dates: bool = True
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Fetch data from Santiment API for a given metric."""
     if not SANTIMENT_API_KEY:
         raise ValueError("SANTIMENT_API_KEY not found in environment variables")
@@ -176,7 +176,7 @@ def fetch_santiment_data(
     return result
 
 
-def fetch_trending_words(days: int = 7, retry_with_adjusted_dates: bool = True) -> Dict[str, Any]:
+def fetch_trending_words(days: int = 7, retry_with_adjusted_dates: bool = True) -> dict[str, Any]:
     """Fetch trending words from Santiment API."""
     if not SANTIMENT_API_KEY:
         raise ValueError("SANTIMENT_API_KEY not found in environment variables")
@@ -250,7 +250,7 @@ def fetch_trending_words(days: int = 7, retry_with_adjusted_dates: bool = True) 
     return result
 
 
-def get_sentiment_balance(asset: str, days: int = 7) -> Dict[str, Any]:
+def get_sentiment_balance(asset: str, days: int = 7) -> dict[str, Any]:
     """Get sentiment balance for an asset."""
     try:
         data = fetch_santiment_data("sentiment_balance_total", asset, days)
@@ -283,7 +283,7 @@ def get_sentiment_balance(asset: str, days: int = 7) -> Dict[str, Any]:
         }
 
 
-def get_social_volume(asset: str, days: int = 7) -> Dict[str, Any]:
+def get_social_volume(asset: str, days: int = 7) -> dict[str, Any]:
     """Get social volume for an asset."""
     try:
         data = fetch_santiment_data("social_volume_total", asset, days)
@@ -312,7 +312,7 @@ def get_social_volume(asset: str, days: int = 7) -> Dict[str, Any]:
         return {"success": False, "error": f"Error fetching social volume for {asset}: {error_msg}"}
 
 
-def alert_social_shift(asset: str, threshold: float = 50.0, days: int = 7) -> Dict[str, Any]:
+def alert_social_shift(asset: str, threshold: float = 50.0, days: int = 7) -> dict[str, Any]:
     """Detect significant shifts in social volume."""
     try:
         data = fetch_santiment_data("social_volume_total", asset, days)
@@ -366,7 +366,7 @@ def alert_social_shift(asset: str, threshold: float = 50.0, days: int = 7) -> Di
         }
 
 
-def get_trending_words(days: int = 7, top_n: int = 5) -> Dict[str, Any]:
+def get_trending_words(days: int = 7, top_n: int = 5) -> dict[str, Any]:
     """Get trending words in crypto space."""
     try:
         data = fetch_trending_words(days)
@@ -414,7 +414,7 @@ def get_trending_words(days: int = 7, top_n: int = 5) -> Dict[str, Any]:
         return {"success": False, "error": f"Error fetching trending words: {error_msg}"}
 
 
-def get_social_dominance(asset: str, days: int = 7) -> Dict[str, Any]:
+def get_social_dominance(asset: str, days: int = 7) -> dict[str, Any]:
     """Get social dominance for an asset."""
     try:
         data = fetch_santiment_data("social_dominance_total", asset, days)
@@ -449,7 +449,7 @@ def get_social_dominance(asset: str, days: int = 7) -> Dict[str, Any]:
 # Free metrics available without subscription restrictions
 
 
-def get_price_usd(asset: str, days: int = 7) -> Dict[str, Any]:
+def get_price_usd(asset: str, days: int = 7) -> dict[str, Any]:
     """Get USD price for an asset (free metric)."""
     try:
         data = fetch_santiment_data("price_usd", asset, days)
@@ -478,7 +478,7 @@ def get_price_usd(asset: str, days: int = 7) -> Dict[str, Any]:
         return {"success": False, "error": f"Error fetching price for {asset}: {error_msg}"}
 
 
-def get_price_btc(asset: str, days: int = 7) -> Dict[str, Any]:
+def get_price_btc(asset: str, days: int = 7) -> dict[str, Any]:
     """Get BTC price for an asset (free metric)."""
     try:
         data = fetch_santiment_data("price_btc", asset, days)
@@ -507,7 +507,7 @@ def get_price_btc(asset: str, days: int = 7) -> Dict[str, Any]:
         return {"success": False, "error": f"Error fetching BTC price for {asset}: {error_msg}"}
 
 
-def get_volume_usd(asset: str, days: int = 7) -> Dict[str, Any]:
+def get_volume_usd(asset: str, days: int = 7) -> dict[str, Any]:
     """Get trading volume in USD for an asset (free metric)."""
     try:
         data = fetch_santiment_data("volume_usd", asset, days)
@@ -532,7 +532,7 @@ def get_volume_usd(asset: str, days: int = 7) -> Dict[str, Any]:
         return {"success": False, "error": f"Error fetching volume for {asset}: {error_msg}"}
 
 
-def get_volume_btc(asset: str, days: int = 7) -> Dict[str, Any]:
+def get_volume_btc(asset: str, days: int = 7) -> dict[str, Any]:
     """Get trading volume in BTC for an asset (free metric)."""
     try:
         data = fetch_santiment_data("volume_btc", asset, days)
@@ -557,7 +557,7 @@ def get_volume_btc(asset: str, days: int = 7) -> Dict[str, Any]:
         return {"success": False, "error": f"Error fetching BTC volume for {asset}: {error_msg}"}
 
 
-def get_transaction_volume(asset: str, days: int = 7) -> Dict[str, Any]:
+def get_transaction_volume(asset: str, days: int = 7) -> dict[str, Any]:
     """Get on-chain transaction volume for an asset (free metric)."""
     try:
         data = fetch_santiment_data("transaction_volume", asset, days)
@@ -588,7 +588,7 @@ def get_transaction_volume(asset: str, days: int = 7) -> Dict[str, Any]:
         }
 
 
-def get_active_addresses(asset: str, days: int = 7) -> Dict[str, Any]:
+def get_active_addresses(asset: str, days: int = 7) -> dict[str, Any]:
     """Get number of active addresses for an asset (free metric)."""
     try:
         data = fetch_santiment_data("active_addresses_24h", asset, days)

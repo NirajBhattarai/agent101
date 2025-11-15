@@ -6,7 +6,7 @@ from typing import Optional
 class HederaClient:
     """Hedera Hashgraph client."""
 
-    def __init__(self, account_id: Optional[str] = None, private_key: Optional[str] = None):
+    def __init__(self, account_id: str | None = None, private_key: str | None = None):
         """
         Initialize Hedera client.
 

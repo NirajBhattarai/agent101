@@ -5,7 +5,7 @@ Handles swap configuration and preparation for Hedera chain using SaucerSwap DEX
 """
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from web3 import Web3
 from web3.providers import HTTPProvider
@@ -30,7 +30,7 @@ def get_amounts_out(
     router_address: str,
     token_in_symbol: str,
     rpc_url: str,
-) -> Optional[list[int]]:
+) -> list[int] | None:
     """
     Call router.getAmountsOut to get expected output amounts.
 
@@ -84,7 +84,7 @@ def get_amounts_out(
         return None
 
 
-def get_token_address_hedera(token_symbol: str, use_evm: bool = False) -> Optional[str]:
+def get_token_address_hedera(token_symbol: str, use_evm: bool = False) -> str | None:
     """
     Get token address for Hedera.
 
@@ -111,9 +111,9 @@ def get_swap_hedera(
     amount_in: str,
     account_address: str,
     slippage_tolerance: float = 0.5,
-    dex_name: Optional[str] = None,
-    token_out_decimals: Optional[int] = None,
-) -> Dict[str, Any]:
+    dex_name: str | None = None,
+    token_out_decimals: int | None = None,
+) -> dict[str, Any]:
     """
     Get swap configuration for Hedera chain using SaucerSwap.
 

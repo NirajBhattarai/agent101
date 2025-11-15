@@ -4,7 +4,7 @@ Price Data Fetcher from CoinGecko API
 
 import os
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import requests
 
@@ -16,7 +16,7 @@ from ..core.constants import (
 )
 
 
-def _get_coingecko_headers() -> Dict[str, str]:
+def _get_coingecko_headers() -> dict[str, str]:
     """Get CoinGecko API headers with API key if available."""
     api_key = os.getenv("COINGECKO_API_KEY")
     headers = {}
@@ -52,7 +52,7 @@ def normalize_asset(asset: str) -> str:
 
 def _fetch_with_retry(
     url: str,
-    params: Optional[Dict[str, Any]] = None,
+    params: dict[str, Any] | None = None,
     max_retries: int = 3,
     timeout: int = 45,
     backoff_factor: float = 2.0,
@@ -99,7 +99,7 @@ def _fetch_with_retry(
     raise Exception("Unexpected error in retry logic")
 
 
-def fetch_price_data(asset: str, days: int = 30) -> Dict[str, Any]:
+def fetch_price_data(asset: str, days: int = 30) -> dict[str, Any]:
     """Fetch price and volume data from CoinGecko API with retry logic."""
     asset_id = normalize_asset(asset)
 
@@ -205,7 +205,7 @@ def fetch_price_data(asset: str, days: int = 30) -> Dict[str, Any]:
         return {"success": False, "error": f"Unexpected error fetching price data: {str(e)}"}
 
 
-def fetch_sentiment_data(asset: str, days: int = 7) -> Dict[str, Any]:
+def fetch_sentiment_data(asset: str, days: int = 7) -> dict[str, Any]:
     """Fetch sentiment data from sentiment agent via A2A protocol."""
     asset_id = normalize_asset(asset)
 

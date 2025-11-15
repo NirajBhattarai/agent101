@@ -10,7 +10,7 @@ except ImportError:
     TokenId = None
 
 
-def token_id_to_solidity_address(token_id: str) -> Optional[str]:
+def token_id_to_solidity_address(token_id: str) -> str | None:
     """
     Convert Hedera TokenId (0.0.123456) to Solidity address format (0x...) using Hiero SDK.
 
@@ -32,7 +32,7 @@ def token_id_to_solidity_address(token_id: str) -> Optional[str]:
         return None
 
 
-def solidity_address_to_token_id(solidity_address: str) -> Optional[str]:
+def solidity_address_to_token_id(solidity_address: str) -> str | None:
     """
     Convert Solidity address (0x...) to Hedera TokenId format (0.0.123456) using Hiero SDK.
 
@@ -63,7 +63,7 @@ def solidity_address_to_token_id(solidity_address: str) -> Optional[str]:
         return None
 
 
-def resolve_token_identifier(token_identifier: str) -> Optional[str]:
+def resolve_token_identifier(token_identifier: str) -> str | None:
     """
     Resolve token identifier to Hedera TokenId format.
     Handles: token symbols, TokenId format (0.0.123456), and Solidity addresses (0x...).

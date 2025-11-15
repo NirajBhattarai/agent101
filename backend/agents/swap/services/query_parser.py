@@ -5,7 +5,7 @@ Handles extraction of swap parameters from user queries.
 """
 
 import re
-from typing import Optional, Tuple
+from typing import Optional
 
 from ..core.constants import (
     CHAIN_ETHEREUM,
@@ -19,7 +19,7 @@ from ..core.constants import (
 )
 
 
-def extract_account_address(query: str) -> Optional[str]:
+def extract_account_address(query: str) -> str | None:
     """Extract account address from query."""
     hedera_match = re.search(r"0\.0\.\d+", query)
     if hedera_match:
@@ -30,7 +30,7 @@ def extract_account_address(query: str) -> Optional[str]:
     return None
 
 
-def extract_chain(query: str) -> Tuple[str, bool]:
+def extract_chain(query: str) -> tuple[str, bool]:
     """Extract chain from query. Returns (chain, chain_specified)."""
     query_lower = query.lower()
     if "hedera" in query_lower:
@@ -90,7 +90,7 @@ def _get_all_token_symbols(chain: str) -> list:
     return common_tokens
 
 
-def _match_token_patterns(query_lower: str, all_tokens: list) -> Optional[Tuple[str, str]]:
+def _match_token_patterns(query_lower: str, all_tokens: list) -> tuple[str, str] | None:
     """Match token swap patterns. Returns (token_in, token_out) or None."""
     patterns = [
         r"help\s+to\s+swap\s+(\d+\.?\d*)\s+([A-Za-z]+)\s+to\s+([A-Za-z]+)",  # "help to swap 0.2 usdc to aster"
@@ -121,7 +121,7 @@ def _match_token_patterns(query_lower: str, all_tokens: list) -> Optional[Tuple[
 
 def _find_tokens_by_position(
     query_lower: str, all_tokens: list, chain: str
-) -> Tuple[Optional[str], Optional[str]]:
+) -> tuple[str | None, str | None]:
     """Find tokens by their position in query."""
     from packages.blockchain.ethereum.constants import ETHEREUM_TOKENS
     from packages.blockchain.hedera.constants import HEDERA_TOKENS
@@ -170,7 +170,7 @@ def _find_tokens_by_position(
 
 def extract_token_symbols(
     query: str, chain: str, chain_specified: bool
-) -> Tuple[Optional[str], Optional[str]]:
+) -> tuple[str | None, str | None]:
     """Extract token symbols from query."""
     all_tokens = _get_all_token_symbols(chain)
     query_lower = query.lower()

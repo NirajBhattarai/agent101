@@ -93,7 +93,7 @@ Agent101 follows a **multi-agent orchestration architecture** with a clear separ
 
 - **Node.js** 18+ (for frontend)
 - **Python** 3.11+ (for backend)
-- **uv** or **pip** (Python package manager)
+- **uv** (Python package manager, recommended)
 - **Google API Key** (for Gemini models)
 
 ### Installation
@@ -113,9 +113,11 @@ npm install
 3. **Install Backend Dependencies**
 ```bash
 cd backend
-pip install -e ".[dev]"
-# Or with uv (faster):
-uv pip install -e ".[dev]"
+# Using uv (recommended):
+uv venv
+uv sync --extra dev
+# Or using Makefile:
+make backend-install
 ```
 
 ### Environment Setup
@@ -149,14 +151,14 @@ make frontend-dev
 1. **Start Backend Agents**:
 ```bash
 # Terminal 1: Orchestrator
-cd backend && python -m agents.orchestrator
+cd backend && uv run -m agents.orchestrator.orchestrator
 
 # Terminal 2-6: Specialized Agents
-cd backend && python -m agents.balance
-cd backend && python -m agents.multichain_liquidity
-cd backend && python -m agents.swap
-cd backend && python -m agents.sentiment
-cd backend && python -m agents.trading
+cd backend && uv run -m agents.balance
+cd backend && uv run -m agents.multichain_liquidity
+cd backend && uv run -m agents.swap
+cd backend && uv run -m agents.sentiment
+cd backend && uv run -m agents.trading
 ```
 
 2. **Start Frontend**:

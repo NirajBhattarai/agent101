@@ -6,7 +6,7 @@ from typing import Optional
 import requests
 
 
-def search_token_on_web(token_symbol: str) -> Optional[dict]:
+def search_token_on_web(token_symbol: str) -> dict | None:
     """
     Search for token information on the web using Google Custom Search.
 
@@ -54,7 +54,7 @@ def search_token_on_web(token_symbol: str) -> Optional[dict]:
         return None
 
 
-def search_token_contract_address(token_symbol: str, chain: str) -> Optional[dict]:
+def search_token_contract_address(token_symbol: str, chain: str) -> dict | None:
     """
     Search for token contract address on a specific chain using CoinGecko API.
 

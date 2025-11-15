@@ -5,15 +5,15 @@ Fetches popular tokens from Ethereum and maps them to Polygon and Hedera.
 """
 
 import os
-from typing import Dict, List, Optional
+from typing import Optional
 
 import requests
 
 # In-memory cache for discovered tokens
-_TOKEN_CACHE: Dict[str, Dict] = {}
+_TOKEN_CACHE: dict[str, dict] = {}
 
 
-def get_popular_ethereum_tokens(limit: int = 50) -> List[Dict]:
+def get_popular_ethereum_tokens(limit: int = 50) -> list[dict]:
     """
     Fetch popular tokens from Ethereum using CoinGecko API.
 
@@ -67,7 +67,7 @@ def get_popular_ethereum_tokens(limit: int = 50) -> List[Dict]:
         return _get_default_popular_tokens()
 
 
-def _get_default_popular_tokens() -> List[Dict]:
+def _get_default_popular_tokens() -> list[dict]:
     """Get default list of popular tokens if API is unavailable."""
     return [
         {"symbol": "BTC", "name": "Bitcoin", "id": "bitcoin", "market_cap_rank": 1},
@@ -98,7 +98,7 @@ def _get_default_popular_tokens() -> List[Dict]:
     ]
 
 
-def get_token_addresses_across_chains(coin_id: str) -> Dict[str, Optional[str]]:
+def get_token_addresses_across_chains(coin_id: str) -> dict[str, str | None]:
     """
     Get token contract addresses across Ethereum, Polygon, and Hedera.
 
@@ -164,7 +164,7 @@ def get_token_addresses_across_chains(coin_id: str) -> Dict[str, Optional[str]]:
         return {"ethereum": None, "polygon": None, "hedera": None}
 
 
-def discover_and_cache_popular_tokens(limit: int = 5) -> Dict[str, Dict]:
+def discover_and_cache_popular_tokens(limit: int = 5) -> dict[str, dict]:
     """
     Discover popular tokens from Ethereum and map them across all chains.
     Store results in memory cache.
@@ -212,7 +212,7 @@ def discover_and_cache_popular_tokens(limit: int = 5) -> Dict[str, Dict]:
     return discovered_tokens
 
 
-def get_cached_tokens() -> Dict[str, Dict]:
+def get_cached_tokens() -> dict[str, dict]:
     """
     Get all cached tokens.
 
@@ -222,7 +222,7 @@ def get_cached_tokens() -> Dict[str, Dict]:
     return _TOKEN_CACHE.copy()
 
 
-def get_token_for_chain(symbol: str, chain: str) -> Optional[Dict]:
+def get_token_for_chain(symbol: str, chain: str) -> dict | None:
     """
     Get token address for a specific chain from cache.
 
@@ -252,7 +252,7 @@ def get_token_for_chain(symbol: str, chain: str) -> Optional[Dict]:
     }
 
 
-def get_all_tokens_for_chain(chain: str) -> List[Dict]:
+def get_all_tokens_for_chain(chain: str) -> list[dict]:
     """
     Get all cached tokens available on a specific chain.
 

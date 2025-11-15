@@ -15,15 +15,15 @@ class LiquidityResult(BaseModel):
     """Represents a single liquidity pool result."""
 
     chain: str = Field(description="Chain name: ethereum, polygon, or hedera")
-    pool_address: Optional[str] = Field(default=None, description="Pool address")
+    pool_address: str | None = Field(default=None, description="Pool address")
     token_a: str = Field(description="Token A address")
     token_b: str = Field(description="Token B address")
     fee: int = Field(description="Fee tier in basis points")
-    liquidity: Optional[str] = Field(default=None, description="Liquidity amount")
-    tick: Optional[int] = Field(default=None, description="Current tick")
-    sqrt_price_x96: Optional[str] = Field(default=None, description="Square root price")
+    liquidity: str | None = Field(default=None, description="Liquidity amount")
+    tick: int | None = Field(default=None, description="Current tick")
+    sqrt_price_x96: str | None = Field(default=None, description="Square root price")
     status: str = Field(description="Status: success, pool_not_found, or error")
-    error: Optional[str] = Field(default=None, description="Error message if any")
+    error: str | None = Field(default=None, description="Error message if any")
 
 
 class StructuredLiquidity(BaseModel):
@@ -34,4 +34,4 @@ class StructuredLiquidity(BaseModel):
     token_a: str = Field(description="Token A address")
     token_b: str = Field(description="Token B address")
     results: list[LiquidityResult] = Field(description="List of liquidity results")
-    error: Optional[str] = Field(default=None, description="Error message if any")
+    error: str | None = Field(default=None, description="Error message if any")

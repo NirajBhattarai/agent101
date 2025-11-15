@@ -4,7 +4,6 @@ Extracts parameters from user queries
 """
 
 import re
-from typing import Tuple
 
 from ..core.constants import DEFAULT_ASSET, DEFAULT_DAYS, DEFAULT_THRESHOLD, DEFAULT_TOP_N
 
@@ -120,21 +119,21 @@ def extract_top_n(query: str) -> int:
     return DEFAULT_TOP_N
 
 
-def parse_sentiment_query(query: str) -> Tuple[str, int]:
+def parse_sentiment_query(query: str) -> tuple[str, int]:
     """Parse sentiment balance query."""
     asset = extract_asset(query)
     days = extract_days(query)
     return asset, days
 
 
-def parse_social_volume_query(query: str) -> Tuple[str, int]:
+def parse_social_volume_query(query: str) -> tuple[str, int]:
     """Parse social volume query."""
     asset = extract_asset(query)
     days = extract_days(query)
     return asset, days
 
 
-def parse_social_shift_query(query: str) -> Tuple[str, float, int]:
+def parse_social_shift_query(query: str) -> tuple[str, float, int]:
     """Parse social shift query."""
     asset = extract_asset(query)
     threshold = extract_threshold(query)
@@ -142,14 +141,14 @@ def parse_social_shift_query(query: str) -> Tuple[str, float, int]:
     return asset, threshold, days
 
 
-def parse_trending_words_query(query: str) -> Tuple[int, int]:
+def parse_trending_words_query(query: str) -> tuple[int, int]:
     """Parse trending words query."""
     days = extract_days(query)
     top_n = extract_top_n(query)
     return days, top_n
 
 
-def parse_social_dominance_query(query: str) -> Tuple[str, int]:
+def parse_social_dominance_query(query: str) -> tuple[str, int]:
     """Parse social dominance query."""
     asset = extract_asset(query)
     days = extract_days(query)

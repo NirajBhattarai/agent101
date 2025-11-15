@@ -4,12 +4,12 @@ Utility to update token constants with discovered tokens.
 Merges discovered tokens from token_discovery into the chain-specific constants.
 """
 
-from typing import Dict, Optional
+from typing import Optional
 
 from packages.blockchain.token_discovery import get_cached_tokens
 
 
-def update_ethereum_tokens() -> Dict:
+def update_ethereum_tokens() -> dict:
     """
     Get Ethereum tokens including discovered tokens from cache.
 
@@ -34,7 +34,7 @@ def update_ethereum_tokens() -> Dict:
     return updated_tokens
 
 
-def update_polygon_tokens() -> Dict:
+def update_polygon_tokens() -> dict:
     """
     Get Polygon tokens including discovered tokens from cache.
 
@@ -59,7 +59,7 @@ def update_polygon_tokens() -> Dict:
     return updated_tokens
 
 
-def update_hedera_tokens() -> Dict:
+def update_hedera_tokens() -> dict:
     """
     Get Hedera tokens including discovered tokens from cache.
 
@@ -88,7 +88,7 @@ def update_hedera_tokens() -> Dict:
     return updated_tokens
 
 
-def get_token_address_for_swap(symbol: str, chain: str) -> Optional[str]:
+def get_token_address_for_swap(symbol: str, chain: str) -> str | None:
     """
     Get token address for swap operations, using both constants and cache.
 

@@ -43,7 +43,7 @@ def build_unknown_chain_response(chain: str, account_address: str) -> dict:
 
 
 def build_balance_response(
-    chain: str, account_address: str, token_symbol: Optional[str] = None
+    chain: str, account_address: str, token_symbol: str | None = None
 ) -> dict:
     """
     Build balance response based on chain and optional token.
@@ -145,7 +145,7 @@ def build_all_chains_token_response(account_address: str, token_symbol: str) -> 
     }
 
 
-def build_popular_tokens_response(account_address: Optional[str]) -> dict:
+def build_popular_tokens_response(account_address: str | None) -> dict:
     """
     Build balance response for popular tokens across all chains.
 
@@ -187,7 +187,7 @@ def build_popular_tokens_response(account_address: Optional[str]) -> dict:
     }
 
 
-def build_all_chains_response(account_address: str, token_symbol: Optional[str] = None) -> dict:
+def build_all_chains_response(account_address: str, token_symbol: str | None = None) -> dict:
     """
     Build response for all chains.
     Consolidated function that handles both general all-chains and token-specific queries.

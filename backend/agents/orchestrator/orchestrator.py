@@ -14,7 +14,9 @@ from fastapi import FastAPI
 try:
     from ag_ui_adk import ADKAgent, add_adk_fastapi_endpoint  # noqa: E402
 except ImportError:
-    print("⚠️  Warning: ag_ui_adk not installed. Install with: pip install ag-ui-adk")
+    print(
+        "⚠️  Warning: ag_ui_adk not installed. Install with: uv pip install ag-ui-adk or make backend-install"
+    )
     add_adk_fastapi_endpoint = None
     ADKAgent = None
 
@@ -25,7 +27,9 @@ from .core.constants import DEFAULT_PORT  # noqa: E402
 def create_app() -> FastAPI:
     """Create FastAPI application with orchestrator agent."""
     if add_adk_fastapi_endpoint is None:
-        raise ImportError("ag_ui_adk is required. Install with: pip install ag-ui-adk")
+        raise ImportError(
+            "ag_ui_adk is required. Install with: uv pip install ag-ui-adk or make backend-install"
+        )
 
     app = FastAPI(title="DeFi Orchestrator (ADK)")
     adk_orchestrator_agent = build_adk_orchestrator_agent()

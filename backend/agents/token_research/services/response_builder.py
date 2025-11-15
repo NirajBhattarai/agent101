@@ -12,7 +12,7 @@ from ..tools.token_discovery import discover_popular_tokens
 from ..tools.token_search import search_token_contract_address, search_token_on_web
 
 
-def build_token_search_response(token_symbol: str, chain: Optional[str] = None) -> dict:
+def build_token_search_response(token_symbol: str, chain: str | None = None) -> dict:
     """
     Build response for token search query.
 

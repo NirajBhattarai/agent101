@@ -15,7 +15,7 @@ def get_swap_hedera(
     amount_in: str,
     account_address: str,
     slippage_tolerance: float = 0.5,
-    token_out_decimals: Optional[int] = None,
+    token_out_decimals: int | None = None,
 ) -> dict:
     """
     Get swap configuration for Hedera chain.

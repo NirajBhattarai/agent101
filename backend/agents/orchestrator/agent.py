@@ -45,7 +45,9 @@ def build_orchestrator_agent() -> LlmAgent:
 def build_adk_orchestrator_agent() -> ADKAgent:
     """Build ADK agent wrapper for AG-UI Protocol."""
     if ADKAgent is None:
-        raise ImportError("ag_ui_adk is not installed. Install it with: pip install ag-ui-adk")
+        raise ImportError(
+            "ag_ui_adk is not installed. Install it with: uv pip install ag-ui-adk or make backend-install"
+        )
 
     orchestrator_agent = build_orchestrator_agent()
     return ADKAgent(

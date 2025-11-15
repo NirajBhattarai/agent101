@@ -3,14 +3,14 @@ Trading Strategy Generator
 Generates buy/sell recommendations based on technical analysis, sentiment, and ML predictions
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
 def generate_trading_recommendation(
-    technical_indicators: Dict[str, Any],
-    sentiment_data: Dict[str, Any],
-    ml_predictions: Dict[str, Any],
-) -> Dict[str, Any]:
+    technical_indicators: dict[str, Any],
+    sentiment_data: dict[str, Any],
+    ml_predictions: dict[str, Any],
+) -> dict[str, Any]:
     """Generate buy/sell recommendation based on all factors."""
 
     rsi = technical_indicators.get("rsi", 50.0)

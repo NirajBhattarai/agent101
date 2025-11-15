@@ -1,5 +1,5 @@
 .PHONY: frontend-dev frontend-build frontend-install frontend-start frontend-format \
-	backend-dev backend-install backend-format backend-lint backend-test \
+	backend-dev backend-install backend-uninstall uninstall backend-format backend-lint backend-test \
 	backend-test-saucerswap backend-test-saucerswap-coverage backend-test-all backend-test-watch \
 	backend-test-ethereum backend-test-polygon backend-test-uniswap \
 	agent-orchestrator agent-liquidity agent-balance agent-swap agent-sentiment agent-trading agent-token-research agents-start agents-stop agents-status agents-restart help
@@ -17,6 +17,8 @@ help:
 	@echo ""
 	@echo "Backend:"
 	@echo "  make backend-install        - Install backend dependencies"
+	@echo "  make uninstall              - Uninstall Python package (defaults to ccode, or PACKAGE=name)"
+	@echo "  make backend-uninstall     - Uninstall Python package (defaults to ccode, or PACKAGE=name)"
 	@echo "  make backend-dev            - Run backend development server"
 	@echo "  make backend-format        - Format backend code with Black"
 	@echo "  make backend-format-check  - Check code formatting (no changes)"
@@ -72,13 +74,30 @@ frontend-start:
 frontend-format:
 	cd frontend && npm run format
 
-# Install backend dependencies
+# Install backend dependencies (creates venv with uv and installs all dependencies)
 backend-install:
-	cd backend && pip install -e ".[dev]"
+	@echo "📦 Setting up Python environment with uv..."
+	@cd backend && uv venv || true
+	@cd backend && uv sync --extra dev
+	@echo "✅ Backend dependencies installed"
+
+# Uninstall a Python package (defaults to ccode, usage: make uninstall or make uninstall PACKAGE=name)
+uninstall:
+	@PACKAGE=$${PACKAGE:-ccode}; \
+	echo "🗑️  Uninstalling $$PACKAGE..."; \
+	cd backend && (uv pip uninstall $$PACKAGE || echo "⚠️  Package $$PACKAGE not found or already uninstalled"); \
+	echo "✅ Uninstall complete"
+
+# Uninstall a Python package (defaults to ccode, usage: make backend-uninstall or make backend-uninstall PACKAGE=name)
+backend-uninstall:
+	@PACKAGE=$${PACKAGE:-ccode}; \
+	echo "🗑️  Uninstalling $$PACKAGE..."; \
+	cd backend && (uv pip uninstall $$PACKAGE || echo "⚠️  Package $$PACKAGE not found or already uninstalled"); \
+	echo "✅ Uninstall complete"
 
 # Run backend development server
 backend-dev:
-	cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Format backend code
 backend-format:
@@ -99,11 +118,11 @@ backend-lint-fix:
 
 # Run backend tests
 backend-test:
-	cd backend && pytest
+	cd backend && uv run pytest
 
 # Run backend tests with coverage
 backend-test-coverage:
-	cd backend && pytest --cov=packages --cov=agents --cov-report=term-missing --cov-report=html
+	cd backend && uv run pytest --cov=packages --cov=agents --cov-report=term-missing --cov-report=html
 
 # Type check backend code
 backend-type-check:
@@ -202,7 +221,7 @@ agents-start:
 	@sleep 1
 	@echo ""
 	@echo "📦 Installing dependencies..."
-	@cd backend && (uv sync 2>&1 || uv pip install -e '.[dev]' 2>&1 || pip install -e '.[dev]' 2>&1) | grep -v '^$$' | head -20 || true
+	@cd backend && (uv venv || true) && uv sync --extra dev 2>&1 | grep -v '^$$' | head -20 || true
 	@echo ""
 	@echo "Starting agents in parallel (logs will appear in terminal)..."
 	@echo "Press Ctrl+C to stop all agents"
