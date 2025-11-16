@@ -1,7 +1,6 @@
 """All chains balance tool."""
 
 import concurrent.futures
-from typing import Optional
 
 from .ethereum import get_balance_ethereum
 from .hedera import get_balance_hedera

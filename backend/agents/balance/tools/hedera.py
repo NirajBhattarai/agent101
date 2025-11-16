@@ -1,6 +1,5 @@
 """Hedera balance tool using packages/blockchain."""
 
-from typing import Optional
 
 from packages.blockchain.hedera.balance import (
     get_account_identifier_for_api,

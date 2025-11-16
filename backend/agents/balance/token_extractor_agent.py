@@ -3,6 +3,113 @@ Token Extractor Agent.
 
 Extracts token information (symbols, addresses, networks) from user queries
 and organizes them into structured JSON format by blockchain network.
+
+REQUEST FORMAT:
+The agent receives a user query string that may contain:
+- Token symbols (e.g., "USDT", "USDC", "ETH", "HBAR", "MATIC")
+- Blockchain network names (e.g., "Ethereum", "Polygon", "Hedera")
+- Contract addresses (hexadecimal starting with 0x)
+- Requests for "all networks" or "all chains"
+
+Example Requests:
+- "Get USDT on Ethereum and Polygon"
+- "What's the address of USDC on Ethereum, Polygon, and Hedera?"
+- "Show me ETH, MATIC, and HBAR on all networks"
+- "Get HBAR on Hedera"
+- "Find USDC addresses on Ethereum, Polygon, and Hedera"
+- "USDT, USDC, and DAI on Ethereum"
+- "All stablecoins on Polygon and Hedera"
+
+RESPONSE FORMAT:
+Returns a structured JSON object with the following structure:
+
+{
+  "networks": {
+    "ethereum": {
+      "name": "Ethereum",
+      "chain_id": 1,
+      "rpc": "https://eth.llamarpc.com",
+      "tokens": [
+        {
+          "symbol": "USDT",
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "decimals": 6,
+          "is_native": false,
+          "coingecko_id": "tether",
+          "wrapped_address": "0x..." // Optional, for native tokens
+        },
+        {
+          "symbol": "ETH",
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 18,
+          "is_native": true,
+          "coingecko_id": "ethereum",
+          "wrapped_address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" // WETH
+        }
+      ]
+    },
+    "polygon": {
+      "name": "Polygon",
+      "chain_id": 137,
+      "rpc": "https://polygon.llamarpc.com",
+      "tokens": [
+        {
+          "symbol": "USDT",
+          "address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+          "decimals": 6,
+          "is_native": false,
+          "coingecko_id": "tether"
+        }
+      ]
+    },
+    "hedera": {
+      "name": "Hedera",
+      "chain_id": 295,
+      "rpc": "https://mainnet.hashio.io/api",
+      "tokens": [
+        {
+          "symbol": "HBAR",
+          "address": "0x0000000000000000000000000000000000000000",
+          "decimals": 8,
+          "is_native": true,
+          "coingecko_id": "hedera",
+          "tokenid": "0.0.0",
+          "wrapped_address": "0x..." // WHBAR
+        }
+      ]
+    }
+  },
+  "tokens": [
+    {
+      "symbol": "USDT",
+      "chains": ["ethereum", "polygon", "hedera"],
+      "references": [
+        {"chain": "ethereum", "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7"},
+        {"chain": "polygon", "address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"},
+        {"chain": "hedera", "address": "0x0000000000000000000000000000000000101b07"}
+      ]
+    }
+  ],
+  "networks_list": ["ethereum", "polygon", "hedera"],
+  "query_valid": true,
+  "error": null,
+  "summary": {
+    "tokens_found": 1,
+    "networks_found": 3,
+    "total_tokens_extracted": 3
+  }
+}
+
+RESPONSE FIELDS:
+- networks: Object keyed by network name (ethereum, polygon, hedera)
+  - Each network contains: name, chain_id, rpc, tokens array
+- tokens: Flat array of unique tokens with cross-chain references
+- networks_list: Array of network names found
+- query_valid: Boolean indicating if query was understood
+- error: Error message string or null
+- summary: Statistics about extracted tokens
+
+The response is stored in session.state['token_data'] for use by the balance extractor agent.
 """
 
 import json
@@ -323,91 +430,3 @@ def _extract_json(response: str) -> dict:
     }
 
 
-# Test queries for validation
-TEST_QUERIES = [
-    "Get USDT on Ethereum and Polygon",
-    "What's the address of USDC on Ethereum, Polygon, and Hedera?",
-    "Show me ETH, MATIC, and HBAR on all networks",
-    "Get HBAR on Hedera",
-    "Find USDC addresses on Ethereum, Polygon, and Hedera",
-    "USDT, USDC, and DAI on Ethereum",
-    "All stablecoins on Polygon and Hedera",
-]
-
-
-# Example expected response for "Get USDT on Ethereum, Polygon, and Hedera"
-EXAMPLE_RESPONSE = {
-    "networks": {
-        "ethereum": {
-            "name": "Ethereum",
-            "chain_id": 1,
-            "rpc": "https://eth.llamarpc.com",
-            "tokens": [
-                {
-                    "symbol": "USDT",
-                    "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-                    "decimals": 6,
-                    "is_native": False,
-                    "coingecko_id": "tether",
-                },
-            ],
-        },
-        "polygon": {
-            "name": "Polygon",
-            "chain_id": 137,
-            "rpc": "https://polygon.llamarpc.com",
-            "tokens": [
-                {
-                    "symbol": "USDT",
-                    "address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-                    "decimals": 6,
-                    "is_native": False,
-                    "coingecko_id": "tether",
-                },
-            ],
-        },
-        "hedera": {
-            "name": "Hedera",
-            "chain_id": 295,
-            "rpc": "https://mainnet.hashio.io/api",
-            "tokens": [
-                {
-                    "symbol": "USDT",
-                    "address": "0x0000000000000000000000000000000000101b07",
-                    "decimals": 6,
-                    "is_native": False,
-                    "coingecko_id": "tether",
-                    "tokenid": "0.0.1055472",
-                },
-            ],
-        },
-    },
-    "tokens": [
-        {
-            "symbol": "USDT",
-            "chains": ["ethereum", "polygon", "hedera"],
-            "references": [
-                {
-                    "chain": "ethereum",
-                    "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-                },
-                {
-                    "chain": "polygon",
-                    "address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-                },
-                {
-                    "chain": "hedera",
-                    "address": "0x0000000000000000000000000000000000101b07",
-                },
-            ],
-        },
-    ],
-    "networks_list": ["ethereum", "polygon", "hedera"],
-    "query_valid": True,
-    "error": None,
-    "summary": {
-        "tokens_found": 1,
-        "networks_found": 3,
-        "total_tokens_extracted": 3,
-    },
-}

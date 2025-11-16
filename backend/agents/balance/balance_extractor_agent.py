@@ -1,14 +1,112 @@
 """
 Balance Extractor Agent.
 
-Extracts account addresses from user queries and prepares balance query parameters.
+Extracts account addresses from user queries and fetches balance data using available tools.
 Uses token data from token_extractor_agent response to get token addresses.
+
+REQUEST FORMAT:
+The agent receives a user query string that may contain:
+- Account addresses (Hedera format: 0.0.123456 or EVM format: 0x...)
+- Blockchain network names (e.g., "Ethereum", "Polygon", "Hedera", "all chains")
+- Token symbols (e.g., "USDT", "USDC", "HBAR", "ETH", "MATIC")
+- Requests for "all balances" or "popular tokens"
+
+Example Requests:
+- "Get balance for 0.0.123456 on Hedera"
+- "Get USDT balance for 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb on Ethereum"
+- "Get all balances for 0x46f3da7d7811bb339cea36bb7199361a543de22f" (no chain = all chains)
+- "Get USDC balance" (requires address)
+- "Get popular tokens"
+- "Show me HBAR balance for account 0.0.456789"
+- "Get all token balances for 0x1234567890123456789012345678901234567890 on Polygon"
+
+RESPONSE FORMAT:
+The agent can return two types of responses:
+
+1. TOOL RESPONSE (when agent calls tools directly):
+{
+  "type": "balance",
+  "chain": "hedera" | "ethereum" | "polygon" | "all",
+  "account_address": "0.0.123456" | "0x...",
+  "balances": [
+    {
+      "token_type": "native",
+      "token_symbol": "HBAR",
+      "token_address": "0.0.0",
+      "balance": "103.43977453",
+      "balance_raw": "10343977453",
+      "decimals": 8
+    },
+    {
+      "token_type": "token",
+      "token_symbol": "USDC",
+      "token_address": "0.0.1055472",
+      "balance": "1000.0",
+      "balance_raw": "1000000000",
+      "decimals": 6
+    }
+  ],
+  "total_usd_value": "$0.00"
+}
+
+For "all" chains, returns:
+{
+  "type": "balance_summary",
+  "account_address": "0x...",
+  "token_address": "USDC" | null,
+  "chains": {
+    "hedera": {
+      "type": "balance",
+      "chain": "hedera",
+      "account_address": "0.0.123456",
+      "balances": [...],
+      "total_usd_value": "$0.00"
+    },
+    "ethereum": {...},
+    "polygon": {...}
+  },
+  "total_usd_value": "$0.00"
+}
+
+2. EXTRACTION RESPONSE (when agent only extracts parameters):
+{
+  "account_address": "0.0.123456" | "0x..." | null,
+  "token_symbol": "USDT" | null,
+  "chain": "ethereum" | "polygon" | "hedera" | "all" | "unknown",
+  "query_type": "popular_tokens" | "all_chains_token" | "specific_token_chain" | "standard_balance",
+  "requires_address": true | false,
+  "address_error": null | "error message if address is invalid/required"
+}
+
+RESPONSE FIELDS:
+Tool Response:
+- type: Always "balance" or "balance_summary" for all chains
+- chain: Network identifier (hedera, ethereum, polygon, all)
+- account_address: The account address queried
+- balances: Array of balance objects, each containing:
+  - token_type: "native" or "token"
+  - token_symbol: Token ticker (HBAR, ETH, USDC, etc.)
+  - token_address: Contract address or native token identifier
+  - balance: Human-readable balance string
+  - balance_raw: Raw balance as string (before decimal conversion)
+  - decimals: Number of decimal places
+- total_usd_value: Total USD value (currently "$0.00")
+
+Extraction Response:
+- account_address: Extracted account address or null
+- token_symbol: Extracted token symbol or null
+- chain: Detected or inferred chain
+- query_type: Type of query (popular_tokens, all_chains_token, etc.)
+- requires_address: Whether address is required for this query
+- address_error: Error message if address is missing or invalid
+
+The response is stored in session.state['balance_data'] for use by the executor.
+The executor will use tool responses directly or use extraction responses to call balance tools.
 """
 
 # Standard library imports
 import json
 import re
-from typing import Optional
 
 # Third-party imports
 from google.adk.agents.llm_agent import LlmAgent
@@ -498,24 +596,3 @@ def _extract_complete_json(text: str) -> dict | None:
     return None
 
 
-# Test queries for validation
-TEST_QUERIES = [
-    "Get balance for 0.0.123456 on Hedera",
-    "Get USDT balance for 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb on Ethereum",
-    "Get USDC balance",
-    "Get popular tokens",
-    "Get balance for 0.0.123456",
-    "Show me HBAR balance for account 0.0.456789",
-    "Get all token balances for 0x1234567890123456789012345678901234567890 on Polygon",
-]
-
-
-# Example expected response for "Get balance for 0.0.123456 on Hedera"
-EXAMPLE_RESPONSE = {
-    "account_address": "0.0.123456",
-    "token_symbol": None,
-    "chain": "hedera",
-    "query_type": "standard_balance",
-    "requires_address": True,
-    "address_error": None,
-}

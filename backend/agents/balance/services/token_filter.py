@@ -3,7 +3,6 @@ Token filtering utilities for balance agent.
 Centralized functions for filtering balances by token symbol.
 """
 
-from typing import Optional
 
 
 def filter_balances_by_token(balances: list[dict], token_symbol: str | None) -> list[dict]:

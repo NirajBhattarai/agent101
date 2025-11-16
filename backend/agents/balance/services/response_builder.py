@@ -4,7 +4,6 @@ Response building utilities for balance agent.
 Handles construction of balance responses for different chains.
 """
 
-from typing import Optional
 
 from ..core.constants import (
     CHAIN_ALL,

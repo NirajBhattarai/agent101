@@ -2,7 +2,6 @@
 
 from .constants import (
     AGENT_DESCRIPTION,
-    AGENT_INSTRUCTION,
     AGENT_NAME,
     CHAIN_ALL,
     CHAIN_ETHEREUM,
@@ -23,7 +22,6 @@ from .response_validator import (
 __all__ = [
     "AGENT_NAME",
     "AGENT_DESCRIPTION",
-    "AGENT_INSTRUCTION",
     "RESPONSE_TYPE",
     "CHAIN_ETHEREUM",
     "CHAIN_POLYGON",
