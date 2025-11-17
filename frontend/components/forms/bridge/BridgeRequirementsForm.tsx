@@ -130,10 +130,10 @@ export const BridgeRequirementsForm: React.FC<BridgeRequirementsFormProps> = ({
         <div className="flex items-center gap-2">
           <div className="text-2xl">✓</div>
           <div>
-            <h3 className="text-base font-semibold text-[#010507]">Bridge Request Submitted</h3>
+            <h3 className="text-base font-semibold text-[#010507]">Bridge Request Processing</h3>
             <p className="text-xs text-[#57575B]">
-              Checking balance and finding best bridge options for {amount} {tokenSymbol} from{" "}
-              {sourceChain} to {destinationChain}...
+              Verifying balance and analyzing optimal bridge routes for {amount} {tokenSymbol} from{" "}
+              {sourceChain} to {destinationChain}. Evaluating fees and transfer times...
             </p>
           </div>
         </div>
@@ -146,8 +146,13 @@ export const BridgeRequirementsForm: React.FC<BridgeRequirementsFormProps> = ({
       <div className="flex items-center gap-2 mb-4">
         <div className="text-2xl">🌉</div>
         <div>
-          <h3 className="text-base font-semibold text-[#010507]">Bridge Token Details</h3>
-          <p className="text-xs text-[#57575B]">Please provide bridge information</p>
+          <h3 className="text-base font-semibold text-[#010507]">
+            Cross-Chain Bridge Configuration
+          </h3>
+          <p className="text-xs text-[#57575B]">
+            Configure your cross-chain token transfer. Select source and destination networks,
+            token, and amount
+          </p>
         </div>
       </div>
 

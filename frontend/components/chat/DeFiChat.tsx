@@ -25,6 +25,7 @@ import type {
   DeFiChatProps,
   BalanceData,
   LiquidityData,
+  LiquidityResponse,
   MultiChainLiquidityData,
   SwapData,
   SwapRouterData,
@@ -34,6 +35,7 @@ import type {
   TokenResearchData,
   MessageActionRenderProps,
 } from "@/types";
+import { transformLiquidityResponse } from "@/utils/liquidityTransformer";
 
 const ChatInner = ({
   onTokenResearchUpdate,
@@ -182,9 +184,40 @@ const ChatInner = ({
               ) {
                 onBalanceUpdate?.(parsed as BalanceData);
               }
-              // Check if it's liquidity data (regular or parallel)
+              // Check if it's liquidity data (new backend format from LiquidityFinder)
+              else if (
+                parsed.type === "liquidity" &&
+                parsed.results &&
+                Array.isArray(parsed.results)
+              ) {
+                console.log("💧 LiquidityFinder Response Received:", {
+                  chain: parsed.chain,
+                  token_a: parsed.token_a,
+                  token_b: parsed.token_b,
+                  results_count: parsed.results.length,
+                });
+                // Transform backend format to frontend format
+                const transformed = transformLiquidityResponse(parsed as LiquidityResponse);
+                console.log("💧 Transformed Liquidity Data:", {
+                  token_pair: transformed.token_pair,
+                  hedera_pairs: transformed.hedera_pairs?.length || 0,
+                  polygon_pairs: transformed.polygon_pairs?.length || 0,
+                  ethereum_pairs: transformed.ethereum_pairs?.length || 0,
+                  all_pairs: transformed.all_pairs?.length || 0,
+                });
+                onLiquidityUpdate?.(transformed);
+
+                // Trigger payment settlement after receiving liquidity data
+                if (typeof (window as any).__liquidityPaymentSettle === "function") {
+                  console.log("💰 Triggering payment settlement after liquidity response...");
+                  setTimeout(() => {
+                    (window as any).__liquidityPaymentSettle();
+                  }, 1000); // Small delay to ensure UI updates
+                }
+              }
+              // Check if it's already in frontend format (backward compatibility)
               else if (parsed.type === "multichain_liquidity") {
-                console.log("💧 Multi-Chain Liquidity Data Received:", {
+                console.log("💧 Multi-Chain Liquidity Data Received (legacy format):", {
                   token_pair: parsed.token_pair,
                   chain: parsed.chain,
                   chains: parsed.chains,
@@ -525,9 +558,9 @@ const ChatInner = ({
         className="h-full"
         labels={{
           initial:
-            "👋 Hi! I'm your DeFi liquidity assistant.\n\nAsk me to check balances or get liquidity information and I'll coordinate with specialized agents to fetch on-chain data!",
+            "👋 Hi! I'm your DeFi assistant.\n\nI can help you check balances, find liquidity pools, swap tokens, bridge assets, and research tokens across Hedera, Ethereum, and Polygon.\n\nJust ask me what you need!",
         }}
-        instructions="You are a helpful DeFi assistant. Help users query balances and liquidity by coordinating with specialized agents."
+        instructions="You are a professional DeFi assistant powered by AgentFlow101. Help users execute DeFi operations across Hedera, Ethereum, and Polygon networks by coordinating with specialized AI agents. Always provide clear, helpful responses and explain what agents are being used for each operation."
       />
     </div>
   );

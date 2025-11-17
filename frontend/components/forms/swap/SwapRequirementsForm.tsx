@@ -136,10 +136,10 @@ export const SwapRequirementsForm: React.FC<SwapRequirementsFormProps> = ({ args
         <div className="flex items-center gap-2">
           <div className="text-2xl">✓</div>
           <div>
-            <h3 className="text-base font-semibold text-[#010507]">Swap Request Submitted</h3>
+            <h3 className="text-base font-semibold text-[#010507]">Processing Swap Request</h3>
             <p className="text-xs text-[#57575B]">
-              Getting swap quotes for {amountIn} {tokenInSymbol.toUpperCase()} →{" "}
-              {tokenOutSymbol.toUpperCase()} on {chain}...
+              Analyzing optimal swap routes for {amountIn} {tokenInSymbol.toUpperCase()} →{" "}
+              {tokenOutSymbol.toUpperCase()} on {chain}. Comparing rates across multiple DEXes...
             </p>
           </div>
         </div>
@@ -152,9 +152,10 @@ export const SwapRequirementsForm: React.FC<SwapRequirementsFormProps> = ({ args
       <div className="flex items-center gap-2 mb-4">
         <div className="text-2xl">💱</div>
         <div>
-          <h3 className="text-base font-semibold text-[#010507]">Swap Token Details</h3>
+          <h3 className="text-base font-semibold text-[#010507]">Token Swap Configuration</h3>
           <p className="text-xs text-[#57575B]">
-            Enter token symbols in capital letters (e.g., USDC, PEPE, MATIC)
+            Configure your swap parameters. Enter token symbols in uppercase (e.g., USDC, HBAR,
+            MATIC)
           </p>
         </div>
       </div>

@@ -110,10 +110,11 @@ export const BalanceRequirementsForm: React.FC<BalanceRequirementsFormProps> = (
         <div className="flex items-center gap-2">
           <div className="text-2xl">✓</div>
           <div>
-            <h3 className="text-base font-semibold text-[#010507]">Balance Query Submitted</h3>
+            <h3 className="text-base font-semibold text-[#010507]">Query Processing</h3>
             <p className="text-xs text-[#57575B]">
-              Fetching balance for {accountAddress} on {chain === "all" ? "all chains" : chain}
-              {tokenAddress ? ` for token ${tokenAddress}` : ""}...
+              Retrieving balance data for {accountAddress.slice(0, 10)}... on{" "}
+              {chain === "all" ? "all networks" : chain}
+              {tokenAddress ? ` for ${tokenAddress}` : ""}. Please wait...
             </p>
           </div>
         </div>
@@ -126,9 +127,10 @@ export const BalanceRequirementsForm: React.FC<BalanceRequirementsFormProps> = (
       <div className="flex items-center gap-2 mb-4">
         <div className="text-2xl">💱</div>
         <div>
-          <h3 className="text-base font-semibold text-[#010507]">Balance Query Details</h3>
+          <h3 className="text-base font-semibold text-[#010507]">Portfolio Balance Query</h3>
           <p className="text-xs text-[#57575B]">
-            Please provide account information to check balance
+            Enter account details to retrieve real-time balance information across supported
+            networks
           </p>
         </div>
       </div>

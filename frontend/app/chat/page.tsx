@@ -221,12 +221,31 @@ export default function ChatPage() {
           {/* Right content area */}
           <div className="flex-1 overflow-y-auto rounded-lg bg-white/30 backdrop-blur-sm">
             <div className="max-w-5xl mx-auto p-8">
-              <div className="mb-8">
-                <h2 className="text-3xl font-semibold text-[#010507] mb-2">Your DeFi Data</h2>
-                <p className="text-[#57575B]">
-                  Multi-agent coordination: Balance, Liquidity, Parallel Liquidity, and Swap agents
-                  with A2A Protocol
-                </p>
+              <div className="mb-10">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-xl">
+                    <span className="text-3xl">🚀</span>
+                  </div>
+                  <div>
+                    <h2 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                      DeFi Command Center
+                    </h2>
+                    <p className="text-gray-600 font-medium">
+                      Real-time portfolio insights powered by coordinated AI agents via A2A Protocol
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <span className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-300/30 text-sm font-semibold text-blue-700">
+                    💰 Balance Agent
+                  </span>
+                  <span className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-300/30 text-sm font-semibold text-purple-700">
+                    💧 LiquidityFinder
+                  </span>
+                  <span className="px-4 py-2 rounded-full bg-gradient-to-r from-green-500/10 to-teal-500/10 border border-green-300/30 text-sm font-semibold text-green-700">
+                    💱 Swap Agent
+                  </span>
+                </div>
               </div>
 
               {!balanceData &&
@@ -237,17 +256,39 @@ export default function ChatPage() {
                 !marketInsightsData &&
                 !bridgeData &&
                 !tokenResearchData && (
-                  <div className="flex items-center justify-center h-[400px] bg-white/60 backdrop-blur-md rounded-xl border-2 border-dashed border-[#DBDBE5] shadow-elevation-sm">
-                    <div className="text-center">
-                      <div className="text-6xl mb-4">💰</div>
-                      <h3 className="text-xl font-semibold text-[#010507] mb-2">
-                        Start Querying Your DeFi Data
+                  <div className="relative flex items-center justify-center h-[500px] bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 backdrop-blur-xl rounded-2xl border-2 border-dashed border-blue-300/50 shadow-xl overflow-hidden group">
+                    {/* Animated background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-purple-400/10 to-pink-400/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+                    <div className="text-center relative z-10 max-w-lg px-6">
+                      <div className="relative inline-block mb-6">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full blur-2xl opacity-50 animate-pulse" />
+                        <div className="relative text-7xl filter drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300">
+                          💰
+                        </div>
+                      </div>
+                      <h3 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                        Begin Your DeFi Operations
                       </h3>
-                      <p className="text-[#57575B] max-w-md">
-                        Ask the assistant to check your balance, get liquidity information, or swap
-                        tokens. Watch as specialized agents collaborate through A2A Protocol to
-                        fetch your on-chain data and execute DeFi operations.
+                      <p className="text-gray-600 font-medium leading-relaxed mb-6">
+                        Interact with your AI assistant using natural language. Request balance
+                        checks, liquidity analysis, token swaps, or cross-chain bridges. Our
+                        intelligent orchestrator will coordinate specialized agents to execute your
+                        requests efficiently and securely.
                       </p>
+                      <div className="flex flex-wrap justify-center gap-3">
+                        <span className="px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-300/30 text-sm font-semibold text-blue-700">
+                          "Check my balance"
+                        </span>
+                        <span className="px-4 py-2 rounded-lg bg-purple-500/10 border border-purple-300/30 text-sm font-semibold text-purple-700">
+                          "Find liquidity for LINK/USDT"
+                        </span>
+                        <span className="px-4 py-2 rounded-lg bg-green-500/10 border border-green-300/30 text-sm font-semibold text-green-700">
+                          "Swap 100 USDC to HBAR"
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}

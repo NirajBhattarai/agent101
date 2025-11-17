@@ -14,8 +14,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AgentFlow101 - DeFi Assistant",
-  description: "Multi-Agent DeFi Assistant with A2A Protocol",
+  title: "AgentFlow101 - AI-Powered Multi-Chain DeFi Platform",
+  description:
+    "Experience the future of decentralized finance with intelligent AI agents that coordinate across Hedera, Ethereum, and Polygon networks. Execute swaps, bridge tokens, analyze liquidity, and manage your portfolio with natural language commands.",
+  keywords: [
+    "DeFi",
+    "AI Agents",
+    "Hedera",
+    "Ethereum",
+    "Polygon",
+    "Cross-Chain",
+    "Liquidity",
+    "Swap",
+    "Bridge",
+    "A2A Protocol",
+  ],
+  authors: [{ name: "AgentFlow101 Team" }],
+  openGraph: {
+    title: "AgentFlow101 - AI-Powered Multi-Chain DeFi Platform",
+    description: "Experience the future of decentralized finance with intelligent AI agents",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

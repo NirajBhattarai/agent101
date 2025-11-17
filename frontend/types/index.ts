@@ -146,7 +146,36 @@ export interface LiquidityData {
 }
 
 /**
- * Multi-Chain Liquidity Pair (from Multi-Chain Liquidity Agent)
+ * Backend liquidity result (from LiquidityFinder)
+ */
+export interface LiquidityResult {
+  chain: "ethereum" | "polygon" | "hedera";
+  network: string;
+  pool_address: string | null;
+  token_a: string;
+  token_b: string;
+  fee: number;
+  liquidity: string | null;
+  tick: number;
+  sqrt_price_x96: string;
+  status: "success" | "pool_not_found" | "error";
+  error?: string;
+}
+
+/**
+ * Backend liquidity response (from LiquidityFinder)
+ */
+export interface LiquidityResponse {
+  type: "liquidity";
+  chain: "all" | "ethereum" | "polygon" | "hedera";
+  token_a: string;
+  token_b: string;
+  results: LiquidityResult[];
+  error?: string;
+}
+
+/**
+ * Multi-Chain Liquidity Pair (frontend format)
  */
 export interface MultiChainLiquidityPair {
   base: string;
@@ -171,7 +200,7 @@ export interface MultiChainLiquidityPair {
 }
 
 /**
- * Complete multi-chain liquidity data from Multi-Chain Liquidity Agent
+ * Complete multi-chain liquidity data (frontend format)
  */
 export interface MultiChainLiquidityData {
   type: "multichain_liquidity";

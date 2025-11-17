@@ -53,20 +53,21 @@ export default function LandingPage() {
         <div className="text-center mb-16">
           {/* Hero Section */}
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-sm border border-[#DBDBE5] text-sm text-[#57575B] mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-sm border border-[#DBDBE5] text-sm text-[#57575B] mb-6 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span>Multi-Agent DeFi Platform</span>
+              <span className="font-medium">Enterprise-Grade Multi-Agent DeFi Platform</span>
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-[#010507] mb-6 leading-tight">
-              Cross-Chain DeFi
+              Intelligent DeFi Operations
               <br />
-              <span className="bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
-                Powered by AI Agents
+              <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-fuchsia-600 bg-clip-text text-transparent">
+                Across Multiple Chains
               </span>
             </h1>
-            <p className="text-xl sm:text-2xl text-[#57575B] max-w-3xl mx-auto leading-relaxed mb-10">
-              Experience the future of DeFi with autonomous AI agents that coordinate across chains
-              to optimize your trading, bridging, and yield strategies.
+            <p className="text-xl sm:text-2xl text-[#57575B] max-w-3xl mx-auto leading-relaxed mb-10 font-light">
+              Leverage advanced AI agents that seamlessly coordinate across Hedera, Ethereum, and
+              Polygon networks. Execute complex DeFi operations, analyze market conditions, and
+              optimize your portfolio—all through natural language.
             </p>
           </div>
 
@@ -99,7 +100,8 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold text-[#010507] mb-2">Balance Agent</h3>
             <p className="text-sm text-[#57575B] leading-relaxed">
-              Query account balances across Hedera and Polygon chains with real-time USD valuations.
+              Real-time portfolio tracking across Hedera, Ethereum, and Polygon with instant USD
+              valuations and multi-token support.
             </p>
           </div>
 
@@ -108,9 +110,10 @@ export default function LandingPage() {
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg shadow-teal-500/30">
               <span className="text-2xl">📊</span>
             </div>
-            <h3 className="text-xl font-semibold text-[#010507] mb-2">Liquidity Agent</h3>
+            <h3 className="text-xl font-semibold text-[#010507] mb-2">LiquidityFinder</h3>
             <p className="text-sm text-[#57575B] leading-relaxed">
-              Scan DEX liquidity pools, compare TVL, and find the best trading opportunities.
+              Comprehensive multi-chain liquidity analysis across Uniswap V3 and SaucerSwap. Compare
+              TVL, fee tiers, and pool metrics instantly.
             </p>
           </div>
 
@@ -121,7 +124,8 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold text-[#010507] mb-2">Bridge Agent</h3>
             <p className="text-sm text-[#57575B] leading-relaxed">
-              Bridge tokens seamlessly between Hedera and Polygon with optimized routing.
+              Secure cross-chain token transfers between Hedera and Polygon networks with
+              LayerZero-powered routing and real-time fee optimization.
             </p>
           </div>
 
@@ -132,7 +136,8 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold text-[#010507] mb-2">Swap Agent</h3>
             <p className="text-sm text-[#57575B] leading-relaxed">
-              Execute token swaps with best rates aggregated from multiple DEXes.
+              Intelligent token swaps with automatic rate comparison across multiple DEXes, slippage
+              protection, and gas optimization.
             </p>
           </div>
 
@@ -143,8 +148,8 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold text-[#010507] mb-2">Sentiment Agent</h3>
             <p className="text-sm text-[#57575B] leading-relaxed">
-              Analyze cryptocurrency sentiment, social volume, and trending words using Santiment
-              API.
+              Advanced market sentiment analysis powered by Santiment API. Track social volume,
+              trending topics, and community sentiment in real-time.
             </p>
           </div>
 
@@ -155,8 +160,8 @@ export default function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold text-[#010507] mb-2">Trading Agent</h3>
             <p className="text-sm text-[#57575B] leading-relaxed">
-              Get intelligent buy/sell recommendations for BTC and ETH using ML predictions and
-              technical analysis.
+              AI-powered trading signals for BTC and ETH with machine learning predictions,
+              technical indicators, and risk-adjusted recommendations.
             </p>
           </div>
 
@@ -165,10 +170,10 @@ export default function LandingPage() {
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30">
               <span className="text-2xl">💧🚀</span>
             </div>
-            <h3 className="text-xl font-semibold text-[#010507] mb-2">Parallel Liquidity Agent</h3>
+            <h3 className="text-xl font-semibold text-[#010507] mb-2">Token Research</h3>
             <p className="text-sm text-[#57575B] leading-relaxed">
-              Fetch liquidity from multiple chains simultaneously for faster cross-chain
-              comparisons.
+              Comprehensive token discovery and research across multiple chains. Find contract
+              addresses, verify token metadata, and explore cross-chain availability.
             </p>
           </div>
         </div>
@@ -183,27 +188,30 @@ export default function LandingPage() {
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg">
                 1
               </div>
-              <h3 className="text-xl font-semibold text-[#010507] mb-2">Connect Wallet</h3>
+              <h3 className="text-xl font-semibold text-[#010507] mb-2">Connect Your Wallet</h3>
               <p className="text-[#57575B]">
-                Connect your Hedera or EVM-compatible wallet to get started.
+                Securely connect your Hedera or EVM-compatible wallet (MetaMask, WalletConnect) to
+                begin.
               </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg">
                 2
               </div>
-              <h3 className="text-xl font-semibold text-[#010507] mb-2">Chat with AI</h3>
+              <h3 className="text-xl font-semibold text-[#010507] mb-2">Interact Naturally</h3>
               <p className="text-[#57575B]">
-                Ask questions in natural language. Our orchestrator coordinates specialized agents.
+                Communicate in plain English. Our intelligent orchestrator automatically coordinates
+                specialized agents to fulfill your requests.
               </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg">
                 3
               </div>
-              <h3 className="text-xl font-semibold text-[#010507] mb-2">Execute DeFi</h3>
+              <h3 className="text-xl font-semibold text-[#010507] mb-2">Execute & Monitor</h3>
               <p className="text-[#57575B]">
-                Agents collaborate via A2A Protocol to execute your DeFi operations.
+                Watch as agents collaborate via A2A Protocol to execute operations and provide
+                real-time updates on transaction status.
               </p>
             </div>
           </div>
@@ -232,10 +240,11 @@ export default function LandingPage() {
         <div className="text-center">
           <div className="inline-block p-8 sm:p-12 bg-gradient-to-br from-purple-600/10 to-fuchsia-600/10 backdrop-blur-md rounded-2xl border-2 border-purple-500/20">
             <h2 className="text-3xl sm:text-4xl font-bold text-[#010507] mb-4">
-              Ready to Experience the Future?
+              Ready to Transform Your DeFi Experience?
             </h2>
-            <p className="text-lg text-[#57575B] mb-8 max-w-2xl mx-auto">
-              Join the revolution of AI-powered DeFi. Start chatting with your DeFi assistant now.
+            <p className="text-lg text-[#57575B] mb-8 max-w-2xl mx-auto font-light">
+              Join thousands of users leveraging AI-powered DeFi operations. Start your journey with
+              intelligent agents that work tirelessly to optimize your portfolio.
             </p>
             <Link
               href="/chat"
@@ -253,18 +262,23 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Logo size={36} variant="icon" />
-              <span className="text-sm text-[#57575B]">
-                AgentFlow101 © 2025 - Hedera Hello Future Hackathon
+              <span className="text-sm text-[#57575B] font-medium">
+                AgentFlow101 © 2025 | Built for Hedera Hello Future Hackathon
               </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-[#57575B]">
-              <a href="#" className="hover:text-[#010507] transition-colors">
+              <a href="#" className="hover:text-[#010507] transition-colors font-medium">
                 Documentation
               </a>
-              <a href="#" className="hover:text-[#010507] transition-colors">
+              <a
+                href="https://github.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#010507] transition-colors font-medium"
+              >
                 GitHub
               </a>
-              <a href="#" className="hover:text-[#010507] transition-colors">
+              <a href="#" className="hover:text-[#010507] transition-colors font-medium">
                 Support
               </a>
             </div>

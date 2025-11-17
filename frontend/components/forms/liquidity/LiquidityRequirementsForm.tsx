@@ -67,10 +67,10 @@ export const LiquidityRequirementsForm: React.FC<LiquidityRequirementsFormProps>
         <div className="flex items-center gap-2">
           <div className="text-2xl">✓</div>
           <div>
-            <h3 className="text-base font-semibold text-[#010507]">Liquidity Query Submitted</h3>
+            <h3 className="text-base font-semibold text-[#010507]">Analysis in Progress</h3>
             <p className="text-xs text-[#57575B]">
-              Fetching liquidity pools on {chain === "all" ? "all chains" : chain}
-              {tokenPair ? ` for pair ${tokenPair}` : ""}...
+              Scanning liquidity pools on {chain === "all" ? "all networks" : chain}
+              {tokenPair ? ` for ${tokenPair}` : ""}. This may take a few moments...
             </p>
           </div>
         </div>
@@ -83,8 +83,10 @@ export const LiquidityRequirementsForm: React.FC<LiquidityRequirementsFormProps>
       <div className="flex items-center gap-2 mb-4">
         <div className="text-2xl">💧</div>
         <div>
-          <h3 className="text-base font-semibold text-[#010507]">Liquidity Query Details</h3>
-          <p className="text-xs text-[#57575B]">Please provide chain and token pair information</p>
+          <h3 className="text-base font-semibold text-[#010507]">Liquidity Pool Analysis</h3>
+          <p className="text-xs text-[#57575B]">
+            Specify network and token pair to analyze liquidity pools and trading opportunities
+          </p>
         </div>
       </div>
 
