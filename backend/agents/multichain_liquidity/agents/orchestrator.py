@@ -18,7 +18,7 @@ _ORCHESTRATOR_INSTRUCTION = """
 You are a Multi-Chain Liquidity Orchestrator Agent.
 
 YOUR TASK:
-Analyze the user's liquidity query, determine which blockchain chain(s) to query, resolve token addresses if needed, 
+Analyze the user's liquidity query, determine which blockchain chain(s) to query, resolve token addresses if needed,
 call the appropriate liquidity tools, and return a structured JSON response with all results.
 
 WORKFLOW:
