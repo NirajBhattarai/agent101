@@ -20,8 +20,12 @@ export async function POST(request: NextRequest) {
   // STEP 2: Define orchestrator URL (speaks AG-UI Protocol)
   const orchestratorUrl = process.env.ORCHESTRATOR_URL || "http://localhost:9000";
 
-  // STEP 3: Wrap orchestrator with HttpAgent (AG-UI client)
-  const orchestrationAgent = new HttpAgent({ url: orchestratorUrl });
+  // STEP 3: Extract X-PAYMENT header and wrap orchestrator with HttpAgent (AG-UI client)
+  const xPaymentHeader = request.headers.get("X-PAYMENT") || request.headers.get("x-payment");
+  const orchestrationAgent = new HttpAgent({ 
+    url: orchestratorUrl, 
+    headers: xPaymentHeader ? { 'X-PAYMENT': xPaymentHeader } : {} 
+  });
 
   // STEP 4: Create A2A Middleware Agent
   // This bridges AG-UI and A2A protocols by:
