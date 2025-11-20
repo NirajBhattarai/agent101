@@ -163,7 +163,7 @@ class BalanceExecutor(AgentExecutor):
 
                 # Ensure response is always valid JSON
                 content = validate_and_serialize_response(balance_response)
-                
+
                 # Verify it's valid JSON before sending
                 try:
                     json.loads(content)
@@ -173,7 +173,7 @@ class BalanceExecutor(AgentExecutor):
                     content = _build_execution_error_response(
                         Exception(f"Invalid JSON format: {str(e)}")
                     )
-                
+
                 account_address = balance_response.get("account_address", "unknown")
                 chain = balance_response.get("chain", "unknown")
                 log_response_info(str(account_address), chain, content)

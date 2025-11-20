@@ -30,11 +30,11 @@ export const SwapActionButton: React.FC<SwapActionButtonProps> = ({
   const getDexDisplayName = (): string => {
     const chainLower = transaction.chain?.toLowerCase() || "";
     const dexName = transaction.dex_name || "";
-    
+
     if (chainLower.includes("polygon") && dexName.toLowerCase().includes("uniswap v2")) {
       return dexName.replace(/Uniswap V2/gi, "Uniswap V3");
     }
-    
+
     return dexName;
   };
 

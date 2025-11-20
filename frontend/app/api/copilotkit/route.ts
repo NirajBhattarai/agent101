@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
 
   // STEP 3: Extract X-PAYMENT header and wrap orchestrator with HttpAgent (AG-UI client)
   const xPaymentHeader = request.headers.get("X-PAYMENT") || request.headers.get("x-payment");
-  const orchestrationAgent = new HttpAgent({ 
-    url: orchestratorUrl, 
-    headers: xPaymentHeader ? { 'X-PAYMENT': xPaymentHeader } : {} 
+  const orchestrationAgent = new HttpAgent({
+    url: orchestratorUrl,
+    headers: xPaymentHeader ? { "X-PAYMENT": xPaymentHeader } : {},
   });
 
   // STEP 4: Create A2A Middleware Agent
@@ -352,7 +352,6 @@ export async function POST(request: NextRequest) {
       - If you already called Bridge Agent and got bridge options, that's it - DO NOT call again
     `,
   });
-
 
   const runtime = new CopilotRuntime({
     agents: { a2a_chat: a2aMiddlewareAgent as any },

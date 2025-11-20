@@ -11,7 +11,7 @@ interface TransactionInfoProps {
  */
 const getTokenExplorerUrl = (chain: string, tokenAddress: string): string => {
   const chainLower = chain.toLowerCase();
-  
+
   if (chainLower.includes("hedera")) {
     const network = chainLower.includes("testnet") ? "testnet" : "mainnet";
     // For Hedera, token addresses are in format 0.0.xxxxx
@@ -25,7 +25,7 @@ const getTokenExplorerUrl = (chain: string, tokenAddress: string): string => {
   } else if (chainLower.includes("ethereum") || chainLower.includes("eth")) {
     return `https://etherscan.io/token/${tokenAddress}`;
   }
-  
+
   // Default fallback
   return `https://etherscan.io/token/${tokenAddress}`;
 };

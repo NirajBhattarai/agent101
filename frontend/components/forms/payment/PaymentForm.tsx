@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useAppKitAccount, useAppKit } from "@reown/appkit/react";
-import { useWalletClient } from "wagmi";
-import { ethers } from "ethers";
 import {
   AccountId,
   Client,
@@ -38,11 +36,16 @@ interface PaymentFormProps {
   facilitatorAccountId?: string;
 }
 
-export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }) => {
-  const { address, isConnected } = useAppKitAccount?.() || ({} as any);
-  const { open } = useAppKit?.() || ({} as any);
-  const { data: walletClient } = useWalletClient();
+/**
+ * Type definition for Hedera signer
+ */
+interface HederaSigner {
+  client: Client;
+  accountId: AccountId;
+  privateKey: PrivateKey;
+}
 
+export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }) => {
   const [network, setNetwork] = useState("hedera-testnet");
   const [asset, setAsset] = useState("0.0.0"); // HBAR by default
   const [amount, setAmount] = useState("100000000"); // 1 HBAR in tinybars (hardcoded)
@@ -144,21 +147,6 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
     }
   }, []);
 
-  // Auto-fill payer account ID from connected wallet (only if not already set)
-  useEffect(() => {
-    if (address && !payerAccountId && !keyImported) {
-      // If payerAccountId is empty, try to use wallet address
-      // Note: EVM addresses need to be converted to Hedera account IDs
-      // For now, if the address is already a Hedera account ID format, use it
-      // Otherwise, let user enter manually
-      if (address.match(/^\d+\.\d+\.\d+$/)) {
-        // It's already a Hedera account ID format
-        setPayerAccountId(address);
-      }
-      // If it's an EVM address (0x...), user needs to enter their Hedera account ID manually
-    }
-  }, [address, payerAccountId, keyImported]);
-
   const handleKeyImported = (accountId: string) => {
     setKeyImported(true);
     setPayerAccountId(accountId);
@@ -173,6 +161,47 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
     } else {
       throw new Error(`Unsupported network: ${network}`);
     }
+  };
+
+  /**
+   * Creates a Hedera signer from private key string.
+   *
+   * This function creates a complete Hedera signer by:
+   * 1. Establishing a client connection to the specified network
+   * 2. Parsing the private key from the provided string
+   * 3. Converting the account ID string to an AccountId object
+   * 4. Setting the client operator for transaction signing
+   *
+   * @param network - The network to connect to ("hedera-testnet" or "hedera-mainnet")
+   * @param privateKeyString - The ECDSA private key string (DER format)
+   * @param accountId - The account ID string in format "0.0.{number}"
+   * @returns A Hedera signer instance ready for transaction signing
+   * @throws Error if network, private key, or account ID is invalid
+   *
+   * @example
+   * ```typescript
+   * const signer = createHederaSigner(
+   *   "hedera-testnet",
+   *   "302e020100300506032b657004220420...",
+   *   "0.0.123456"
+   * );
+   * ```
+   */
+  const createHederaSigner = (
+    network: string,
+    privateKeyString: string,
+    accountId: string,
+  ): HederaSigner => {
+    const client = createClient(network);
+    const privateKey = PrivateKey.fromStringECDSA(privateKeyString);
+    const hederaAccountId = AccountId.fromString(accountId);
+    client.setOperator(hederaAccountId, privateKey);
+
+    return {
+      client,
+      accountId: hederaAccountId,
+      privateKey,
+    };
   };
 
   // Helper function to create HBAR transfer transaction
@@ -213,48 +242,39 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
   };
 
   const createPaymentPayload = async () => {
-    // Check if using private key or wallet
+    // Check if private key is imported
     const storedKey = getEncryptedKey();
+
+    if (!storedKey) {
+      setError("Please import a private key to sign transactions");
+      return;
+    }
+
+    // Using private key - need password to decrypt
+    // First try cached password
+    let passwordToUse = keyPassword || getCachedPassword();
+
+    if (!passwordToUse) {
+      setError("Please enter your password to decrypt the private key");
+      setShowPasswordInput(true);
+      return;
+    }
+
     let privateKeyToUse: string | null = null;
-
-    if (storedKey) {
-      // Using private key - need password to decrypt
-      // First try cached password
-      let passwordToUse = keyPassword || getCachedPassword();
-
-      if (!passwordToUse) {
-        setError("Please enter your password to decrypt the private key");
-        setShowPasswordInput(true);
-        return;
-      }
-
-      try {
-        privateKeyToUse = await decryptPrivateKey(storedKey.encryptedKey, passwordToUse);
-        setDecryptedPrivateKey(privateKeyToUse);
-        // Cache the password for 15 minutes
-        cachePassword(passwordToUse);
-        updateLastActivity();
-        setShowPasswordInput(false);
-      } catch (err: any) {
-        // If cached password failed, clear it and ask user
-        clearPasswordCache();
-        setError("Failed to decrypt private key. Please check your password.");
-        setShowPasswordInput(true);
-        setKeyPassword("");
-        return;
-      }
-    } else {
-      // Using wallet - need wallet connection
-      if (!isConnected) {
-        open?.();
-        setError("Please connect your wallet or import a private key");
-        return;
-      }
-
-      if (!walletClient) {
-        setError("Wallet not connected. Please connect your wallet.");
-        return;
-      }
+    try {
+      privateKeyToUse = await decryptPrivateKey(storedKey.encryptedKey, passwordToUse);
+      setDecryptedPrivateKey(privateKeyToUse);
+      // Cache the password for 15 minutes
+      cachePassword(passwordToUse);
+      updateLastActivity();
+      setShowPasswordInput(false);
+    } catch (err: any) {
+      // If cached password failed, clear it and ask user
+      clearPasswordCache();
+      setError("Failed to decrypt private key. Please check your password.");
+      setShowPasswordInput(true);
+      setKeyPassword("");
+      return;
     }
 
     if (!payerAccountId || !payTo || !amount || !feePayer) {
@@ -284,75 +304,45 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ facilitatorAccountId }
         },
       };
 
-      // Step 1: Create transaction client-side (like testFacilitatorEthers.ts)
-      console.log("📝 Step 1: Creating transaction client-side...");
-      const client = createClient(network);
-      const payerAccountIdObj = AccountId.fromString(payerAccountId);
+      // Step 1: Create Hedera signer
+      console.log("📝 Step 1: Creating Hedera signer...");
+      const signer = createHederaSigner(network, privateKeyToUse, payerAccountId);
+      console.log("✅ Hedera signer created");
+
+      // Step 2: Create transaction client-side
+      console.log("📝 Step 2: Creating transaction client-side...");
       const facilitatorAccountId = AccountId.fromString(feePayer);
       const toAccountId = AccountId.fromString(payTo);
 
       let transaction: TransferTransaction;
       if (asset === "0.0.0" || asset.toLowerCase() === "hbar") {
         transaction = createHbarTransferTransaction(
-          payerAccountIdObj,
+          signer.accountId,
           toAccountId,
           facilitatorAccountId,
           amount,
-          client,
+          signer.client,
         );
       } else {
         const tokenId = TokenId.fromString(asset);
         transaction = createTokenTransferTransaction(
-          payerAccountIdObj,
+          signer.accountId,
           toAccountId,
           facilitatorAccountId,
           tokenId,
           amount,
-          client,
+          signer.client,
         );
       }
 
       const transactionId = transaction.transactionId!.toString();
       console.log("✅ Transaction created. Transaction ID:", transactionId);
 
-      // Step 2: Sign transaction with private key or wallet
-      let signedTransactionBytes: string;
-      let walletSignature: string | undefined;
-      let walletAddress: string | undefined;
-      let signedMessage: string | undefined;
-
-      if (privateKeyToUse) {
-        // Sign with private key
-        console.log("📝 Step 2: Signing transaction with private key...");
-        const hederaPrivateKey = PrivateKey.fromStringECDSA(privateKeyToUse);
-        const signedTransaction = await transaction.sign(hederaPrivateKey);
-        signedTransactionBytes = Buffer.from(signedTransaction.toBytes()).toString("base64");
-        console.log("✅ Transaction signed with private key");
-      } else {
-        // Sign with wallet (original flow)
-        console.log("📝 Step 2: Signing authorization message with wallet...");
-        const authorizationMessage = `Hedera x402 Payment Authorization
-
-Network: ${network}
-Payer Account: ${payerAccountId}
-Recipient: ${payTo}
-Amount: ${amount}
-Asset: ${asset === "0.0.0" ? "HBAR" : asset}
-Transaction ID: ${transactionId}
-Description: ${description}
-
-By signing this message, you authorize this payment transaction.`;
-
-        const provider = new ethers.BrowserProvider(walletClient as any);
-        const signer = await provider.getSigner();
-        walletSignature = await signer.signMessage(authorizationMessage);
-        walletAddress = address || "";
-        signedMessage = authorizationMessage;
-        console.log("✅ Authorization message signed:", walletSignature.substring(0, 20) + "...");
-
-        // Serialize unsigned transaction for wallet flow
-        signedTransactionBytes = Buffer.from(transaction.toBytes()).toString("base64");
-      }
+      // Step 3: Sign transaction with signer
+      console.log("📝 Step 3: Signing transaction with signer...");
+      const signedTransaction = await transaction.sign(signer.privateKey);
+      const signedTransactionBytes = Buffer.from(signedTransaction.toBytes()).toString("base64");
+      console.log("✅ Transaction signed with signer");
 
       // Step 3: Create payment payload
       const paymentPayload: PaymentPayload = {
@@ -366,17 +356,8 @@ By signing this message, you authorize this payment transaction.`;
 
       console.log("✅ Payment payload created");
 
-      // Add wallet signature if using wallet flow
-      if (walletSignature) {
-        (paymentPayload as any).walletSignature = walletSignature;
-        (paymentPayload as any).walletAddress = walletAddress;
-        (paymentPayload as any).signedMessage = signedMessage;
-      }
-
-      // If using private key, include it in the payload for direct signing
-      if (privateKeyToUse) {
-        (paymentPayload as any).payerPrivateKey = privateKeyToUse;
-      }
+      // Include private key in the payload for direct signing
+      (paymentPayload as any).payerPrivateKey = privateKeyToUse;
 
       setPaymentPayload(paymentPayload);
 
@@ -419,9 +400,6 @@ By signing this message, you authorize this payment transaction.`;
         body: JSON.stringify({
           paymentPayload,
           paymentRequirements,
-          walletSignature: (paymentPayload as any).walletSignature,
-          walletAddress: (paymentPayload as any).walletAddress,
-          signedMessage: (paymentPayload as any).signedMessage,
         }),
       });
 
@@ -635,23 +613,18 @@ By signing this message, you authorize this payment transaction.`;
               type="text"
               value={payerAccountId}
               onChange={(e) => setPayerAccountId(e.target.value)}
-              placeholder={address && address.match(/^\d+\.\d+\.\d+$/) ? address : "0.0.123456"}
+              placeholder="0.0.123456"
               className="w-full p-2 border rounded-lg"
             />
             <p className="text-xs text-gray-500 mt-1">
-              {address && address.match(/^\d+\.\d+\.\d+$/)
-                ? `Auto-filled from connected wallet: ${address}`
-                : address
-                  ? `Connected wallet: ${address}. Enter your Hedera account ID (0.0.xxxxx format).`
-                  : "Enter your Hedera account ID (0.0.xxxxx format) or connect wallet"}
+              Enter your Hedera account ID (0.0.xxxxx format)
             </p>
           </div>
 
-          {!keyImported && !isConnected && (
+          {!keyImported && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
-                ⚠️ Import a private key above or connect your wallet (MetaMask) to proceed. The
-                wallet button is in the top right corner.
+                ⚠️ Import a private key above to proceed with signing transactions.
               </p>
             </div>
           )}
@@ -661,16 +634,6 @@ By signing this message, you authorize this payment transaction.`;
               <p className="text-sm text-green-800">
                 ✅ <strong>Private Key Signing:</strong> Your private key is encrypted and stored
                 securely. Transactions will be signed directly with your private key.
-              </p>
-            </div>
-          )}
-
-          {!keyImported && isConnected && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                ✅ <strong>Wallet Signing:</strong> Your crypto wallet will sign an authorization
-                message for this payment. No private key needed - everything is signed securely
-                through your connected wallet!
               </p>
             </div>
           )}

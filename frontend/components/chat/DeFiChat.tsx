@@ -47,9 +47,7 @@ const ChatInner = ({
   onMarketInsightsUpdate,
   onBridgeUpdate,
   setHeaders,
-  }: DeFiChatProps) => {
-
-  
+}: DeFiChatProps) => {
   const { visibleMessages } = useCopilotChat();
 
   // Extract structured data from A2A agent responses
@@ -378,19 +376,26 @@ const ChatInner = ({
       },
     ],
     renderAndWaitForResponse: ({ args, respond }) => {
-      return <BalanceRequirementsForm args={args} respond={respond} onPaymentComplete={(paymentProof) => {
-        setHeaders({
-          'X-PAYMENT': paymentProof,
-        });
-        console.log("✅ Balance payment proof set:", paymentProof);
-      }} />;
+      return (
+        <BalanceRequirementsForm
+          args={args}
+          respond={respond}
+          onPaymentComplete={(paymentProof) => {
+            setHeaders({
+              "X-PAYMENT": paymentProof,
+            });
+            console.log("✅ Balance payment proof set:", paymentProof);
+          }}
+        />
+      );
     },
   });
 
   // Register HITL payment form (collects payment before any service access)
   useCopilotAction({
     name: "gather_payment",
-    description: "Collect x402 payment from user before accessing any service (required for all requests)",
+    description:
+      "Collect x402 payment from user before accessing any service (required for all requests)",
     parameters: [
       {
         name: "payerAccountId",
@@ -406,7 +411,7 @@ const ChatInner = ({
           respond={respond}
           onPaymentComplete={(paymentProof) => {
             setHeaders({
-              'X-PAYMENT': paymentProof,
+              "X-PAYMENT": paymentProof,
             });
             console.log("✅ Payment proof set:", paymentProof);
           }}
@@ -589,10 +594,16 @@ export default function DeFiChat({
 }: DeFiChatProps) {
   const [headers, setHeaders] = useState<Record<string, string>>({});
   return (
-    <CopilotKit runtimeUrl="/api/copilotkit" showDevConsole={false} agent="a2a_chat" headers={headers} onError={(errorEvent) => {
-      // Send to your monitoring/analytics service
-      console.error("CopilotKit Error:", errorEvent);
-    }} >
+    <CopilotKit
+      runtimeUrl="/api/copilotkit"
+      showDevConsole={false}
+      agent="a2a_chat"
+      headers={headers}
+      onError={(errorEvent) => {
+        // Send to your monitoring/analytics service
+        console.error("CopilotKit Error:", errorEvent);
+      }}
+    >
       <ChatInner
         onTokenResearchUpdate={onTokenResearchUpdate}
         onBalanceUpdate={onBalanceUpdate}

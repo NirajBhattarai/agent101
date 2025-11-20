@@ -51,7 +51,11 @@ def log_request(
         # Specifically log X-PAYMENT header if present
         x_payment = headers.get("X-PAYMENT") or headers.get("x-payment")
         if x_payment:
-            logger.info(f"   💰 X-PAYMENT Header: {x_payment[:50]}..." if len(x_payment) > 50 else f"   💰 X-PAYMENT Header: {x_payment}")
+            logger.info(
+                f"   💰 X-PAYMENT Header: {x_payment[:50]}..."
+                if len(x_payment) > 50
+                else f"   💰 X-PAYMENT Header: {x_payment}"
+            )
 
     if body:
         try:

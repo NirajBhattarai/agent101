@@ -21,7 +21,6 @@ from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from .core.logger import log_agent_message  # noqa: E402
 from .executor import LiquidityExecutor  # noqa: E402
 
-
 # Railway uses PORT env var, fallback to LIQUIDITY_PORT or default
 port = int(os.getenv("PORT", os.getenv("LIQUIDITY_PORT", 9998)))
 

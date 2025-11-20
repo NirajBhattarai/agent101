@@ -174,4 +174,3 @@ def log_error(error: Exception, context: str | None = None) -> None:
     logger.error(f"   Error Type: {type(error).__name__}")
     logger.error(f"   Error Message: {str(error)}")
     logger.error("=" * 80)
-

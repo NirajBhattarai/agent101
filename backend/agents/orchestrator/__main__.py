@@ -52,7 +52,7 @@ class PaymentTrackingMiddleware:
         headers = dict(scope.get("headers", []))
         path = scope.get("path", "/")
         method = scope.get("method", "UNKNOWN")
-        
+
         # Skip for non-agent paths
         if path in ["/health", "/agent.json", "/.well-known/agent.json", "/docs", "/openapi.json"]:
             await self.app(scope, receive, send)
@@ -68,7 +68,7 @@ class PaymentTrackingMiddleware:
         # Extract session ID from request body and capture all messages
         request_body = b""
         captured_messages = []
-        
+
         async def receive_and_capture() -> Message:
             nonlocal request_body
             message = await receive()
@@ -84,22 +84,30 @@ class PaymentTrackingMiddleware:
                 break
             if msg["type"] == "http.disconnect":
                 break
-        
+
         session_id = None
         if request_body:
             try:
                 body_json = json.loads(request_body.decode("utf-8"))
-                session_id = body_json.get("threadId") or body_json.get("session_id") or body_json.get("sessionId")
+                session_id = (
+                    body_json.get("threadId")
+                    or body_json.get("session_id")
+                    or body_json.get("sessionId")
+                )
             except:
                 pass
 
         # Check payment status
-        is_valid_payment = x_payment_header and x_payment_header != "testing" and len(x_payment_header) > 10
+        is_valid_payment = (
+            x_payment_header and x_payment_header != "testing" and len(x_payment_header) > 10
+        )
         is_session_paid = session_id in self.paid_sessions if session_id else False
-        
+
         print("=" * 80)
         print(f"💰 PAYMENT TRACKING - {method} {path}")
-        print(f"   Session ID: {session_id[:30] + '...' if session_id and len(session_id) > 30 else session_id or 'None'}")
+        print(
+            f"   Session ID: {session_id[:30] + '...' if session_id and len(session_id) > 30 else session_id or 'None'}"
+        )
         print(f"   X-PAYMENT header: {'Present' if x_payment_header else 'Missing'}")
         print(f"   Session paid: {is_session_paid}")
         print(f"   Paid sessions count: {len(self.paid_sessions)}")
@@ -107,17 +115,17 @@ class PaymentTrackingMiddleware:
         # Mark session as paid if valid payment header is present
         if is_valid_payment and session_id:
             self.paid_sessions.add(session_id)
-            print(f"   ✅ Session marked as PAID")
-        
+            print("   ✅ Session marked as PAID")
+
         # Determine payment status
         payment_status = "paid" if (is_valid_payment or is_session_paid) else "unpaid"
         print(f"   Payment status: {payment_status.upper()}")
-        
+
         # Modify captured messages to inject payment requirement if unpaid
         if payment_status == "unpaid" and request_body:
             try:
                 body_json = json.loads(request_body.decode("utf-8"))
-                
+
                 # Inject a system message BEFORE the user message that instructs payment requirement
                 if "messages" in body_json and isinstance(body_json["messages"], list):
                     # Find the system message index
@@ -126,12 +134,12 @@ class PaymentTrackingMiddleware:
                         if msg.get("role") == "system":
                             system_message_idx = i
                             break
-                    
+
                     # Modify the system message to include payment requirement at the very top
                     if system_message_idx is not None:
                         system_msg = body_json["messages"][system_message_idx]
                         original_content = system_msg.get("content", "")
-                        
+
                         # Prepend payment requirement to system message - MAKE IT EXTREMELY PROMINENT
                         payment_instruction = """🚨🚨🚨 CRITICAL PAYMENT REQUIREMENT - READ THIS FIRST 🚨🚨🚨
 
@@ -155,28 +163,28 @@ After payment is completed, then you can proceed with the user's original reques
 """
                         system_msg["content"] = payment_instruction + original_content
                         body_json["messages"][system_message_idx] = system_msg
-                        
+
                         # ALSO inject a user message that explicitly requires payment
                         # Insert it right after the system message, before the actual user message
                         payment_user_msg = {
                             "id": f"payment-required-{uuid.uuid4().hex[:8]}",
                             "role": "user",
-                            "content": "🚨 PAYMENT REQUIRED: Before I can process your request, you must complete payment. Please call gather_payment action now."
+                            "content": "🚨 PAYMENT REQUIRED: Before I can process your request, you must complete payment. Please call gather_payment action now.",
                         }
                         # Insert after system message (index 0 typically)
                         body_json["messages"].insert(1, payment_user_msg)
-                        
+
                         # Log what we injected
-                        print(f"   ✅ Injected PAYMENT REQUIRED into system message")
-                        print(f"   ✅ Injected payment requirement user message")
+                        print("   ✅ Injected PAYMENT REQUIRED into system message")
+                        print("   ✅ Injected payment requirement user message")
                         print(f"   System message length: {len(system_msg['content'])} chars")
                         print(f"   Total messages: {len(body_json['messages'])}")
                     else:
-                        print(f"   ⚠️ No system message found in messages array")
-                
+                        print("   ⚠️ No system message found in messages array")
+
                 # Rebuild request body with payment requirement
                 modified_body = json.dumps(body_json).encode("utf-8")
-                
+
                 # Replace the body in captured messages
                 for i, msg in enumerate(captured_messages):
                     if msg["type"] == "http.request":
@@ -186,16 +194,18 @@ After payment is completed, then you can proceed with the user's original reques
                             "more_body": False,
                         }
                         break
-                
+
             except Exception as e:
                 print(f"   ⚠️ Error injecting payment requirement: {e}")
                 import traceback
+
                 traceback.print_exc()
-        
+
         print("=" * 80)
 
         # Replay captured messages
         message_index = 0
+
         async def receive_replay():
             nonlocal message_index
             if message_index < len(captured_messages):
@@ -229,7 +239,7 @@ class LoggingMiddleware:
         method = scope.get("method", "UNKNOWN")
         path = scope.get("path", "/")
         headers = dict(scope.get("headers", []))
-        
+
         print(f"📝 LoggingMiddleware: Processing {method} {path}")
 
         # Wrap receive to capture request body
@@ -332,8 +342,6 @@ def create_app() -> FastAPI:
     adk_orchestrator_agent = build_adk_orchestrator_agent()
     add_adk_fastapi_endpoint(app, adk_orchestrator_agent, path="/")
 
-    
-
     # Wrap app with middleware in order: PaymentTracking first, then Logging
     # Payment tracking monitors payment status and injects header for agent
     # Logging logs all requests and responses
@@ -356,8 +364,10 @@ def main():
     # Railway uses PORT env var, fallback to ORCHESTRATOR_PORT or DEFAULT_PORT
     port = int(os.getenv("PORT", os.getenv("ORCHESTRATOR_PORT", DEFAULT_PORT)))
     print(f"🚀 Starting Orchestrator Agent (ADK + AG-UI) on http://0.0.0.0:{port}")
-    print(f"   Payment tracking: Active (sessions cleared on restart)")
-    log_agent_message("Orchestrator Agent started with payment tracking - All requests require payment on first interaction")
+    print("   Payment tracking: Active (sessions cleared on restart)")
+    log_agent_message(
+        "Orchestrator Agent started with payment tracking - All requests require payment on first interaction"
+    )
     uvicorn.run(app, host="0.0.0.0", port=port)
 
 
